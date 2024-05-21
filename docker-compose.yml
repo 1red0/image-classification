@@ -1,0 +1,16 @@
+services:
+  image-classifier:
+    container_name: image-classifier
+    image: image-classifier-app
+    volumes:
+      - images:/uploads
+    ports:
+      - "5000:5000"
+    environment:
+      TF_ENABLE_ONEDNN_OPTS: 0
+      TF_CPP_MIN_LOG_LEVEL: 3
+      MODEL: model
+
+volumes:
+  images:
+    driver: local
