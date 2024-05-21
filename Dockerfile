@@ -1,16 +1,12 @@
-# Use the official TensorFlow image as base
 FROM python:3.10
 
-COPY models models
+COPY models /models
+COPY labels /labels
+COPY api.py /app.py
+COPY requirements.txt /requirements.txt
 
-COPY labels labels
-
-COPY api.py app.py
-
-COPY requirements.txt requirements.txt
-
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip --no-cache-dir install --upgrade pip==24.0 && \
+    pip --no-cache-dir install -r requirements.txt
 
 EXPOSE 5000
 

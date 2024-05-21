@@ -6,19 +6,25 @@ A image classification model written in Python using Tensorflow
 
 ### Python
 
-Install dependencies ```pip install -r requirements.txt```
+Install dependencies `pip install -r requirements.txt`
 
-To create a new model: ```python create_model.py new_model 10``` where new_model is the name of the model and 10 are the training epochs
+To create a new model: `python create_model.py new_model 10` where new_model is the name of the model and 10 are the training epochs
 
-To use the model ```python classify.py model_name image.*```
+To use the model `python classify.py model_name image.*`
 
-To use the API ```python api.py``` then ```curl -X POST -F file=@image.* http://localhost:5000/classify```
+### API
 
-### Docker
+#### API-Python
 
-First build the image: ```docker build -t image-classifier-app .```
+To launch the API `python api.py`
 
-Run the container: ```docker run -p 5000:5000 image-classifier-app```
-Using docker-compose: ```docker-compose up -d```
+#### API-Python-Docker
 
-```curl -X POST -F file=@image.* http://localhost:5000/classify```
+First build the image: `docker build -t image-classifier-app .`
+
+Run the container: `docker run -p 5000:5000 image-classifier-app`
+Using docker-compose: `docker-compose up -d`
+
+#### Use the API
+
+`curl -X POST -F file=@image.* http://localhost:5000/classify`
