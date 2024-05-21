@@ -1,11 +1,6 @@
-# image-classification
+# Image-classification
 
 A image classification model written in Python using Tensorflow
-
-## Variables set
-
-export TF_CPP_MIN_LOG_LEVEL=3
-export TF_ENABLE_ONEDNN_OPTS=0
 
 ## Run
 
