@@ -27,18 +27,18 @@ def classify_image(model, img_array, class_names):
 def main():
     model_name = input("Enter the model name: (default: model) ") or 'model'
     image_path = input("Enter the path to the image: ")
+    img_height = input("Enter the processing height of the image: (default: 256)") or 256
+    img_width = input("Enter the processing width of the image: (default: 256)") or 256
+    
     labels_file = os.path.join('labels', model_name + '.txt')
 
     model = load_model(os.path.join('models', model_name + '.keras'))
-
-    img_height = 256
-    img_width = 256
 
     class_names = load_class_names(labels_file)
     img_array = preprocess_image(image_path, img_height, img_width)
     classified_class, confidence = classify_image(model, img_array, class_names)
 
-    print(f"This image most likely belongs to {classified_class} with a {confidence:.2f} percent confidence.")
+    print(f"This image most likely is a {classified_class} with a {confidence:.2f} percent confidence.")
 
 if __name__ == '__main__':
     main()
