@@ -2,7 +2,7 @@
 
 A image classification model written in Python using Tensorflow
 
-## Run
+## Instructions
 
 ### Python
 
