@@ -42,8 +42,9 @@ To launch the API `python api.py`
 
 First build the image: `docker build -t image-classifier-app .`
 
-Run the container: `docker run -p 5000:5000 image-classifier-app`
-Using docker-compose: `docker-compose up -d`
+Running the container from CLI: `docker run -p 5000:5000 image-classifier-app`
+
+Running the container using docker-compose: `docker-compose up -d`
 
 #### Use the API
 
