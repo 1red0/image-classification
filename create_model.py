@@ -72,8 +72,8 @@ def build_model(num_classes):
 
 def main():
     data_dir = input("Enter the path to the dataset directory (default: 'data'): ") or 'data'
-    model_name = input("Enter the model name: ") or 'model'
-    epochs = int(input("Enter the number of epochs: ") or 10)
+    model_name = input("Enter the model name (default: 'model'): ") or 'model'
+    epochs = int(input("Enter the number of epochs (default: 10): ") or 10)
     batch_size = int(input("Enter the batch size (default: 32): ") or 32)
     img_height = int(input("Enter the image height (default: 256): ") or 256)
     img_width = int(input("Enter the image width (default: 256): ") or 256)

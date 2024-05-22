@@ -25,10 +25,10 @@ def classify_image(model, img_array, class_names):
     return classified_class, confidence
 
 def main():
-    model_name = input("Enter the model name: (default: model) ") or 'model'
+    model_name = input("Enter the model name (default: model): ") or 'model'
     image_path = input("Enter the path to the image: ")
-    img_height = input("Enter the processing height of the image: (default: 256)") or 256
-    img_width = input("Enter the processing width of the image: (default: 256)") or 256
+    img_height = input("Enter the processing height of the image (default: 256): ") or 256
+    img_width = input("Enter the processing width of the image (default: 256): ") or 256
     
     labels_file = os.path.join('labels', model_name + '.txt')
 
