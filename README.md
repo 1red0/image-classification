@@ -42,13 +42,13 @@ To launch the API `python api.py`
 
 First build the image: `docker build -t image-classifier-app .`
 
-Running the container from CLI: `docker run -p 5000:5000 image-classifier-app`
+Running the container using docker run: `docker run -p 5000:5000 image-classifier-app`
 
 Running the container using docker-compose: `docker-compose up -d`
 
 #### Use the API
 
-`curl -X POST -F file=@image.* http://localhost:5000/classify`
+Using curl from the CLI: `curl -X POST -F file=@image.* http://localhost:5000/classify`
 
 Output for the API response:
 
