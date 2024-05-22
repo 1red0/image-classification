@@ -1,8 +1,12 @@
 import os
 import pathlib
+import imghdr
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.applications.efficientnet import preprocess_input
+from PIL import Image
 
 def set_memory_growth():
     """Set memory growth for GPUs to avoid OOM errors."""
@@ -10,62 +14,84 @@ def set_memory_growth():
     for gpu in gpus:
         tf.config.experimental.set_memory_growth(gpu, True)
 
+def convert_images_to_rgba(directory):
+    """Convert images with transparency to RGBA format."""
+    for subdir, _, files in os.walk(directory):
+        for file in files:
+            filepath = os.path.join(subdir, file)
+            if imghdr.what(filepath): 
+                try:
+                    with Image.open(filepath) as img:
+                        if img.mode in ("P", "RGBA"):
+                            img = img.convert("RGBA")
+                            img.save(filepath)
+                except Exception as e:
+                    print(f"Error processing {filepath}: {e}")
+
 def load_datasets(data_dir, img_height, img_width, batch_size):
     """Load training and validation datasets from directory."""
-    train_ds = tf.keras.utils.image_dataset_from_directory(
+    convert_images_to_rgba(data_dir)
+    
+    train_ds = tf.keras.preprocessing.image_dataset_from_directory(
         data_dir,
         validation_split=0.2,
         subset="training",
         seed=123,
         image_size=(img_height, img_width),
-        batch_size=batch_size
+        batch_size=batch_size,
+        label_mode='categorical'
     )
     
-    val_ds = tf.keras.utils.image_dataset_from_directory(
+    val_ds = tf.keras.preprocessing.image_dataset_from_directory(
         data_dir,
         validation_split=0.2,
         subset="validation",
         seed=123,
         image_size=(img_height, img_width),
-        batch_size=batch_size
+        batch_size=batch_size,
+        label_mode='categorical'
     )
 
     labels = train_ds.class_names
     
     AUTOTUNE = tf.data.AUTOTUNE
-    train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-    val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
+    train_ds = train_ds.map(lambda x, y: (preprocess_input(x), y)).cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+    val_ds = val_ds.map(lambda x, y: (preprocess_input(x), y)).cache().prefetch(buffer_size=AUTOTUNE)
     
     return labels, train_ds, val_ds
 
 def save_class_names(labels, filename):
     """Save class names to a file."""
-    class_names = labels
+    class_names = list(labels)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, 'w', encoding='utf-8') as f:
         for class_name in class_names:
             f.write(f"{class_name}\n")
     return class_names
 
-def build_model(num_classes):
-    """Build and compile the CNN model."""
+def build_model(num_classes, img_height, img_width):
+    """Build and compile the custom CNN model."""
     model = Sequential([
-        layers.Rescaling(1./255),
-        layers.Conv2D(16, 3, padding='same', activation='relu'),
-        layers.MaxPooling2D(),
-        layers.Conv2D(32, 3, padding='same', activation='relu'),
-        layers.MaxPooling2D(),
-        layers.Conv2D(64, 3, padding='same', activation='relu'),
-        layers.MaxPooling2D(),
+        layers.Input(shape=(img_height, img_width, 3)),
+        layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
         layers.Flatten(),
         layers.Dense(256, activation='relu'),
-        layers.Dense(num_classes)
+        layers.Dropout(0.5),
+        layers.Dense(num_classes, activation='sigmoid')
     ])
     
     model.compile(
-        optimizer='adam',
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=['accuracy']
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), 
+        loss='binary_crossentropy',
+        metrics=['accuracy', tf.keras.metrics.AUC()]
     )
     
     return model
@@ -73,14 +99,16 @@ def build_model(num_classes):
 def main():
     data_dir = input("Enter the path to the dataset directory (default: 'data'): ") or 'data'
     model_name = input("Enter the model name (default: 'model'): ") or 'model'
-    epochs = int(input("Enter the number of epochs (default: 10): ") or 10)
+    epochs = int(input("Enter the number of epochs to train the model (default: 15): ") or 15)
     batch_size = int(input("Enter the batch size (default: 32): ") or 32)
-    img_height = int(input("Enter the image height (default: 256): ") or 256)
-    img_width = int(input("Enter the image width (default: 256): ") or 256)
+    img_height = int(input("Enter the processing height of the image (default: 256): ") or 256)
+    img_width = int(input("Enter the processing width of the image (default: 256): ") or 256)
     
     data_dir = pathlib.Path(data_dir).with_suffix('')
 
     set_memory_growth()
+
+    tf.keras.mixed_precision.set_global_policy('mixed_float16')
     
     labels, train_ds, val_ds = load_datasets(data_dir, img_height, img_width, batch_size)
     
@@ -88,9 +116,19 @@ def main():
     class_names = save_class_names(labels, save_labels_to)
     num_classes = len(class_names)
     
-    model = build_model(num_classes=num_classes)
+    model = build_model(num_classes=num_classes, img_height=img_height, img_width=img_width)
     
-    model.fit(train_ds, validation_data=val_ds, epochs=epochs)
+    callbacks = [
+        EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True),
+        ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.00001)
+    ]
+
+    model.fit(
+        train_ds,
+        validation_data=val_ds,
+        epochs=epochs,
+        callbacks=callbacks
+    )
     
     os.makedirs('models', exist_ok=True)
     model.save(os.path.join('models', model_name + '.keras'))

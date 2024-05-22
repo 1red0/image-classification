@@ -16,19 +16,23 @@ def preprocess_image(image_path, img_height, img_width):
     img_array = tf.expand_dims(img_array, 0)  
     return img_array
 
-def classify_image(model, img_array, class_names):
+def classify_image(model, img_array, class_names, top_k=3):
     """Classify the class of the input image using the trained model."""
     classifications = model.predict(img_array)
-    score = tf.nn.softmax(classifications[0])
-    classified_class = class_names[np.argmax(score)]
-    confidence = 100 * np.max(score)
-    return classified_class, confidence
+    scores = tf.nn.softmax(classifications[0])
+    top_indices = np.argsort(scores)[-top_k:][::-1]
+    
+    top_classes = [class_names[idx] for idx in top_indices]
+    top_confidences = [100 * scores[idx] for idx in top_indices]
+    
+    return top_classes, top_confidences
 
 def main():
     model_name = input("Enter the model name (default: model): ") or 'model'
     image_path = input("Enter the path to the image: ")
-    img_height = input("Enter the processing height of the image (default: 256): ") or 256
-    img_width = input("Enter the processing width of the image (default: 256): ") or 256
+    top_k = int(input("Enter the number of classes to display (default: 3): ") or 3)
+    img_height = int(input("Enter the processing height of the image (default: 256): ") or 256)
+    img_width = int(input("Enter the processing width of the image (default: 256): ") or 256)
     
     labels_file = os.path.join('labels', model_name + '.txt')
 
@@ -36,9 +40,11 @@ def main():
 
     class_names = load_class_names(labels_file)
     img_array = preprocess_image(image_path, img_height, img_width)
-    classified_class, confidence = classify_image(model, img_array, class_names)
+    top_classes, top_confidences = classify_image(model, img_array, class_names, top_k=top_k)
 
-    print(f"This image most likely is a {classified_class} with a {confidence:.2f} percent confidence.")
+    print("Classifications:")
+    for label, confidence in zip(top_classes, top_confidences):
+        print(f"- {label}: {confidence:.2f}% confidence")
 
 if __name__ == '__main__':
     main()

@@ -7,7 +7,7 @@ from gevent.pywsgi import WSGIServer
 
 app = Flask(__name__)
 
-model_name = os.environ['MODEL']
+model_name = os.environ['USE_MODEL']
 
 model = load_model(os.path.join('models/', model_name +'.keras'))
 
@@ -27,13 +27,17 @@ def preprocess_image(image_path, img_height, img_width):
     img_array = tf.expand_dims(img_array, 0)  
     return img_array
 
-def classify_image(model, img_array, class_names):
-    """classify the class of the input image using the trained model."""
+def classify_image(model, img_array, class_names, top_k=3):
+    """Classify the class of the input image using the trained model."""
     classifications = model.predict(img_array)
-    score = tf.nn.softmax(classifications[0])
-    classified_class = class_names[np.argmax(score)]
-    confidence = 100 * np.max(score)
-    return classified_class, confidence
+    scores = tf.nn.softmax(classifications[0])
+    top_indices = np.argsort(scores)[-top_k:][::-1]
+    
+    top_classes = [class_names[idx] for idx in top_indices]
+    top_confidences = [100 * scores[idx] for idx in top_indices]
+    
+    return top_classes, top_confidences
+
 
 @app.route('/classify', methods=['POST'])
 def classify():
@@ -42,16 +46,18 @@ def classify():
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
+    top_k = int(request.args.get('top_k', 3))
     if file:
         file_path = os.path.join('uploads', file.filename)
         file.save(file_path)
         class_names = load_class_names(os.path.join('labels', model_name + '.txt'))
         img_array = preprocess_image(file_path, img_height, img_width)
-        classified_class, confidence = classify_image(model, img_array, class_names)
+        top_classes, top_confidences = classify_image(model, img_array, class_names, top_k=top_k)
+        top_confidences = [float(f'{conf:.2f}') for conf in top_confidences]
         return jsonify({
-            'classified_class': classified_class,
-            'confidence': confidence
+            'classifications': [{'class': c, 'confidence': conf} for c, conf in zip(top_classes, top_confidences)]
         })
+
 
 if __name__ == '__main__': 
     if not os.path.exists('uploads'):
