@@ -52,4 +52,6 @@ Running the container using docker-compose: `docker-compose up -d`
 
 Output for the API response:
 
-`{"classified_class":"classified_class","confidence":confidence}`
+```text
+{"classified_class":"classified_class","confidence":confidence}
+```
