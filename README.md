@@ -10,7 +10,27 @@ Install dependencies `pip install -r requirements.txt`
 
 To create a new model: `python create_model.py`
 
+Output for create model:
+
+```text
+Enter the path to the dataset directory (default: 'data'):
+Enter the model name (default: 'model'):
+Enter the number of epochs (default: 10):
+Enter the batch size (default: 32): 10
+Enter the image height (default: 256): 
+Enter the image width (default: 256):
+```
+
 To use the model `python classify.py`
+
+Output for classify:
+
+```text
+Enter the model name (default: model): 
+Enter the path to the image:
+Enter the processing height of the image (default: 256):
+Enter the processing width of the image (default: 256):
+```
 
 ### API
 
@@ -28,3 +48,7 @@ Using docker-compose: `docker-compose up -d`
 #### Use the API
 
 `curl -X POST -F file=@image.* http://localhost:5000/classify`
+
+Output for the API response:
+
+`{"classified_class":"classified_class","confidence":confidence}`
