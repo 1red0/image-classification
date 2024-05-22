@@ -16,7 +16,7 @@ Output for create model:
 Enter the path to the dataset directory (default: 'data'):
 Enter the model name (default: 'model'):
 Enter the number of epochs (default: 10):
-Enter the batch size (default: 32): 10
+Enter the batch size (default: 32):
 Enter the image height (default: 256): 
 Enter the image width (default: 256):
 ```
