@@ -3,7 +3,6 @@ import pathlib
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-import sys
 
 def set_memory_growth():
     """Set memory growth for GPUs to avoid OOM errors."""
@@ -42,6 +41,7 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
 def save_class_names(labels, filename):
     """Save class names to a file."""
     class_names = labels
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, 'w', encoding='utf-8') as f:
         for class_name in class_names:
             f.write(f"{class_name}\n")
@@ -71,25 +71,20 @@ def build_model(num_classes):
     return model
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python create_model.py <model_name> <epochs>")
-        sys.exit(1)    
-
-    data_dir = pathlib.Path('data').with_suffix('')
-
-    batch_size = 8
-    img_height = 256
-    img_width = 256
-
-    model_name = sys.argv[1]
-    epochs = int(sys.argv[2])
+    data_dir = input("Enter the path to the dataset directory (default: 'data'): ") or 'data'
+    model_name = input("Enter the model name: ") or 'model'
+    epochs = int(input("Enter the number of epochs: ") or 10)
+    batch_size = int(input("Enter the batch size (default: 32): ") or 32)
+    img_height = int(input("Enter the image height (default: 256): ") or 256)
+    img_width = int(input("Enter the image width (default: 256): ") or 256)
     
+    data_dir = pathlib.Path(data_dir).with_suffix('')
+
     set_memory_growth()
     
     labels, train_ds, val_ds = load_datasets(data_dir, img_height, img_width, batch_size)
     
     save_labels_to = os.path.join('labels', model_name + '.txt')
-
     class_names = save_class_names(labels, save_labels_to)
     num_classes = len(class_names)
     
@@ -97,6 +92,7 @@ def main():
     
     model.fit(train_ds, validation_data=val_ds, epochs=epochs)
     
+    os.makedirs('models', exist_ok=True)
     model.save(os.path.join('models', model_name + '.keras'))
 
 if __name__ == '__main__':

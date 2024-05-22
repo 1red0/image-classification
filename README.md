@@ -8,9 +8,9 @@ A image classification model written in Python using Tensorflow
 
 Install dependencies `pip install -r requirements.txt`
 
-To create a new model: `python create_model.py new_model 10` where new_model is the name of the model and 10 are the training epochs
+To create a new model: `python create_model.py`
 
-To use the model `python classify.py model_name image.*`
+To use the model `python classify.py`
 
 ### API
 

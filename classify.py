@@ -2,7 +2,6 @@ import os
 import tensorflow as tf
 import numpy as np
 from tensorflow.keras.models import load_model
-import sys
 
 def load_class_names(labels_file):
     """Load class names from a text file."""
@@ -26,15 +25,11 @@ def classify_image(model, img_array, class_names):
     return classified_class, confidence
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python classify.py <model_name> <image_path>")
-        sys.exit(1)
-
-    model_name = sys.argv[1]
-    image_path = sys.argv[2]
+    model_name = input("Enter the model name: (default: model) ") or 'model'
+    image_path = input("Enter the path to the image: ")
     labels_file = os.path.join('labels', model_name + '.txt')
 
-    model = load_model(os.path.join('models', model_name +'.keras'))
+    model = load_model(os.path.join('models', model_name + '.keras'))
 
     img_height = 256
     img_width = 256
