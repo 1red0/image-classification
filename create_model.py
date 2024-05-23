@@ -1,21 +1,26 @@
 import os
 import pathlib
-import tensorflow as tf
-from tensorflow.keras import layers
+from tensorflow.data import AUTOTUNE
+from tensorflow.keras import layers, regularizers
+from tensorflow.keras.utils import image_dataset_from_directory
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.keras.mixed_precision import set_global_policy
+from tensorflow.config.experimental import list_physical_devices, set_memory_growth
+
 
 from PIL import Image
 import warnings
 
-def set_memory_growth():
+def set_memory():
     """Set memory growth for GPUs to avoid OOM errors."""
-    gpus = tf.config.experimental.list_physical_devices('GPU')
+    gpus = list_physical_devices('GPU')
     if gpus:
         try:
             for gpu in gpus:
-                tf.config.experimental.set_memory_growth(gpu, True)
+                set_memory_growth(gpu, True)
         except RuntimeError as e:
             print(f"Error setting memory growth: {e}")
 
@@ -43,7 +48,7 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
     convert_images_to_rgba(data_dir)
     
     
-    train_ds = tf.keras.utils.image_dataset_from_directory(
+    train_ds = image_dataset_from_directory(
         data_dir,
         validation_split=0.2,
         subset="training",
@@ -53,7 +58,7 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
         shuffle=True
     )
     
-    val_ds = tf.keras.utils.image_dataset_from_directory(
+    val_ds = image_dataset_from_directory(
         data_dir,
         validation_split=0.2,
         subset="validation",
@@ -64,8 +69,6 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
     )
 
     labels = train_ds.class_names
-    
-    AUTOTUNE = tf.data.AUTOTUNE
 
     train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
     val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)    
@@ -118,17 +121,22 @@ def build_model(num_classes, img_height, img_width):
 
         layers.Flatten(),
 
-        layers.Dense(512, activation='relu'),
-        layers.BatchNormalization(),
+        layers.Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
         layers.Dropout(0.5),
 
-        layers.Dense(num_classes, activation='softmax'),
-        layers.BatchNormalization(),
+        layers.Dense(num_classes, activation='softmax')
     ])
     
+    optimizer = Adam(
+        learning_rate=0.00001,  
+        beta_1=0.9,             
+        beta_2=0.999,           
+        epsilon=1e-07           
+    )    
+
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.00001),
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        optimizer=optimizer,
+        loss=SparseCategoricalCrossentropy(from_logits=True),
         metrics=['accuracy']
     )
     
@@ -146,9 +154,9 @@ def main():
         
         data_dir = pathlib.Path(data_dir).with_suffix('')
 
-        set_memory_growth()
+        set_memory()
 
-        tf.keras.mixed_precision.set_global_policy('mixed_float16')
+        set_global_policy('mixed_float16')
         
         labels, train_ds, val_ds = load_datasets(data_dir, img_height, img_width, batch_size)
         
@@ -161,7 +169,7 @@ def main():
         model = build_model(num_classes=num_classes, img_height=img_height, img_width=img_width)
             
         callbacks = [
-            EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True),
+            EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
             ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.000001)
         ]
 
