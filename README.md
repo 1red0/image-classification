@@ -6,7 +6,7 @@ A image classification model written in Python using Tensorflow
 
 ### Python
 
-Install dependencies `pip install -r requirements.txt`
+Install dependencies `pip --no-cache-dir install -r requirements.txt`
 
 To create a new model: `python create_model.py`
 
