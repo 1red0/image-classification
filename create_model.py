@@ -96,35 +96,34 @@ def build_model(num_classes, img_height, img_width):
         layers.RandomZoom(0.1),        
         layers.Rescaling(1./255),
 
-        layers.Conv2D(16, 3, padding='same', activation='relu'),
+        layers.Conv2D(16, (3, 3), padding='same', activation='relu'),
         layers.BatchNormalization(),
         layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(32, 3, padding='same', activation='relu'),
+        layers.Conv2D(32, (3, 3), padding='same', activation='relu'),
         layers.BatchNormalization(),
         layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(64, 3, padding='same', activation='relu'),
+        layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
         layers.BatchNormalization(),
         layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(128, 3, padding='same', activation='relu'),
+        layers.Conv2D(128, (3, 3), padding='same', activation='relu'),
         layers.BatchNormalization(),
         layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(256, 3, padding='same', activation='relu'),
+        layers.Conv2D(256, (3, 3), padding='same', activation='relu'),
         layers.BatchNormalization(),
         layers.MaxPooling2D((2, 2)),                 
 
         layers.Flatten(),
-        
+
         layers.Dense(512, activation='relu'),
         layers.BatchNormalization(),
         layers.Dropout(0.5),
 
         layers.Dense(num_classes, activation='softmax'),
         layers.BatchNormalization(),
-        
     ])
     
     model.compile(
