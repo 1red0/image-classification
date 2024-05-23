@@ -37,12 +37,12 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
     """Load training and validation datasets from directory."""
     convert_images_to_rgba(data_dir)
     
-    datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+    data_gen = tf.keras.preprocessing.image.ImageDataGenerator(
+        rescale=1./255,
         validation_split=0.2,
         rotation_range=20,
         shear_range=0.2,
         horizontal_flip=True,
-        rescale=1./255,
         height_shift_range=0.1,
         width_shift_range=0.1,
         brightness_range=(0.5,1.5),
@@ -50,20 +50,22 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
         fill_mode='nearest'
     )
 
-    train_ds = datagen.flow_from_directory(
-        data_dir,
+    train_ds = data_gen.flow_from_directory(
+        data_dir,        
         target_size=(img_height, img_width),
         batch_size=batch_size,
         subset='training',
-        class_mode='categorical'
+        class_mode='categorical',
+        shuffle=True,
     )
     
-    val_ds = datagen.flow_from_directory(
+    val_ds = data_gen.flow_from_directory(
         data_dir,
         target_size=(img_height, img_width),
         batch_size=batch_size,
         subset='validation',
-        class_mode='categorical'
+        class_mode='categorical',
+        shuffle=True,
     )
 
     labels = train_ds.class_indices.keys()  
