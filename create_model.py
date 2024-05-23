@@ -4,8 +4,9 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.applications.efficientnet import preprocess_input
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from PIL import Image
+import warnings
 
 def set_memory_growth():
     """Set memory growth for GPUs to avoid OOM errors."""
@@ -40,83 +41,82 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
     """Load training and validation datasets from directory."""
     convert_images_to_rgba(data_dir)
     
-    try:
-        train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-            data_dir,
-            validation_split=0.2,
-            subset="training",
-            seed=123,
-            image_size=(img_height, img_width),
-            batch_size=batch_size,
-            label_mode='categorical'
-        )
-        
-        val_ds = tf.keras.preprocessing.image_dataset_from_directory(
-            data_dir,
-            validation_split=0.2,
-            subset="validation",
-            seed=123,
-            image_size=(img_height, img_width),
-            batch_size=batch_size,
-            label_mode='categorical'
-        )
-    except FileNotFoundError:
-        raise FileNotFoundError(f"The specified directory '{data_dir}' does not exist.")
-    except Exception as e:
-        raise RuntimeError(f"Error loading datasets: {e}")
-
-    labels = train_ds.class_names
+    datagen = ImageDataGenerator(
+        validation_split=0.2,
+        rescale=1./255,
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        fill_mode='nearest'
+    )
     
-    AUTOTUNE = tf.data.AUTOTUNE
-    train_ds = train_ds.map(lambda x, y: (preprocess_input(x), y)).cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-    val_ds = val_ds.map(lambda x, y: (preprocess_input(x), y)).cache().prefetch(buffer_size=AUTOTUNE)
+    train_ds = datagen.flow_from_directory(
+        data_dir,
+        subset="training",
+        seed=123,
+        target_size=(img_height, img_width),
+        batch_size=batch_size,
+        class_mode='categorical'
+    )
+    
+    val_ds = datagen.flow_from_directory(
+        data_dir,
+        subset="validation",
+        seed=123,
+        target_size=(img_height, img_width),
+        batch_size=batch_size,
+        class_mode='categorical'
+    )
+
+    labels = list(train_ds.class_indices.keys())
     
     return labels, train_ds, val_ds
 
 def save_class_names(labels, filename):
     """Save class names to a file."""
-    class_names = list(labels)
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     try:
         with open(filename, 'w', encoding='utf-8') as f:
-            for class_name in class_names:
+            for class_name in labels:
                 f.write(f"{class_name}\n")
     except IOError as e:
         raise IOError(f"Error saving class names to {filename}: {e}")
 
-    return class_names
-
 def build_model(num_classes, img_height, img_width):
-    """Build and compile the custom CNN model."""
-    try:
-        model = Sequential([
-            layers.Input(shape=(img_height, img_width, 3)),
-            layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
-            layers.BatchNormalization(),
-            layers.MaxPooling2D((2, 2)),
-            layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
-            layers.BatchNormalization(),
-            layers.MaxPooling2D((2, 2)),
-            layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
-            layers.BatchNormalization(),
-            layers.MaxPooling2D((2, 2)),
-            layers.Flatten(),
-            layers.Dense(256, activation='relu'),
-            layers.Dropout(0.5),
-            layers.Dense(num_classes, activation='sigmoid')
-        ])
-        
-        model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), 
-            loss='binary_crossentropy',
-            metrics=['accuracy', tf.keras.metrics.AUC()]
-        )
-    except Exception as e:
-        raise RuntimeError(f"Error building model: {e}")
+    """Build and compile a custom CNN model."""
+    model = Sequential([
+        layers.Input(shape=(img_height, img_width, 3)),
+        layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(256, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
+        layers.Flatten(),
+        layers.Dense(512, activation='relu'),
+        layers.Dropout(0.5),
+        layers.Dense(num_classes, activation='softmax')
+    ])
+    
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), 
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
     
     return model
 
 def main():
+    warnings.filterwarnings("ignore")
     try:
         data_dir = input("Enter the path to the dataset directory (default: 'data'): ") or 'data'
         model_name = input("Enter the model name (default: 'model'): ") or 'model'
@@ -135,9 +135,9 @@ def main():
         
         os.makedirs('labels', exist_ok=True)
         save_labels_to = os.path.join('labels', model_name + '.txt')
-        class_names = save_class_names(labels, save_labels_to)
+        save_class_names(labels, save_labels_to)
         
-        num_classes = len(class_names)
+        num_classes = len(labels)
         
         model = build_model(num_classes=num_classes, img_height=img_height, img_width=img_width)
         

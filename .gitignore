@@ -164,3 +164,5 @@ labels/*.txt
 data/**/*.jpg
 data/**/*.jpeg
 data/**/*.png
+
+.vscode/
