@@ -8,29 +8,47 @@ A image classification model written in Python using Tensorflow
 
 Install dependencies `pip --no-cache-dir install -r requirements.txt`
 
-To create a new model: `python create_model.py`
-
-Inputs for `create_model.py`:
+The `create_model.py` script
 
 ```text
-Enter the model name (default: 'model'):
-Enter the path to the dataset directory (default: 'data'):
-Enter the number of epochs to train the model (default: 15):
-Enter the batch size (default: 32):
-Enter the processing height of the image (default: 256):
-Enter the processing width of the image (default: 256):
+usage: create_model.py [-h] --model_name MODEL_NAME [--data_dir DATA_DIR] [--epochs EPOCHS]
+                       [--batch_size BATCH_SIZE] [--img_height IMG_HEIGHT] [--img_width IMG_WIDTH]
+
+Train a deep learning model for image classification using TensorFlow.
+
+options:
+  -h, --help            show this help message and exit
+  --model_name MODEL_NAME
+                        Name of the model (required)
+  --data_dir DATA_DIR   Path to the dataset directory (default=data)
+  --epochs EPOCHS       Number of epochs to train the model (default=15)
+  --batch_size BATCH_SIZE
+                        Batch size (default=32)
+  --img_height IMG_HEIGHT
+                        Processing height of the images (default=256)
+  --img_width IMG_WIDTH
+                        Processing width of the images (default=256)
 ```
 
-To use the model `python classify.py`
-
-Inputs for `classify.py`:
+The `classify.py` script:
 
 ```text
-Enter the model name (default: model):
-Enter the path to the image:
-Enter the number of classes to display (default: 3):
-Enter the processing height of the image (default: 256):
-Enter the processing width of the image (default: 256):
+usage: classify.py [-h] --model_name MODEL_NAME --image_path IMAGE_PATH [--top_k TOP_K] [--img_height IMG_HEIGHT]
+                   [--img_width IMG_WIDTH]
+
+Image classification script
+
+options:
+  -h, --help            show this help message and exit
+  --model_name MODEL_NAME
+                        Name of the model (required)
+  --image_path IMAGE_PATH
+                        Path to the image (required)
+  --top_k TOP_K         Number of classes to display (default=3)
+  --img_height IMG_HEIGHT
+                        Processing height of the image (default=256)
+  --img_width IMG_WIDTH
+                        Processing width of the image (default=256)
 ```
 
 ### API
@@ -57,9 +75,9 @@ top_k=n -> the number of n classes to show
 file=@path_to_image -> the image path
 ```
 
-Using curl from the CLI: `curl -X POST -F file=@path_to_image http://localhost:5000/classify?top_k=n`
+Using curl from the CLI: `curl -X POST -F file=@path_to_image "http://localhost:5200/classify?top_k=n"`
 
-Using curl and jq from the CLI: `curl -X POST -F file=@path_to_image http://localhost:5000/classify?top_k=n | jq .`
+Using curl and jq from the CLI: `curl -X POST -F file=@path_to_image "http://localhost:5200/classify?top_k=n" | jq .`
 
 Output for the API response (Example for top_k=3):
 

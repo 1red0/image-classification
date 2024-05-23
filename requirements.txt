@@ -3,3 +3,6 @@ numpy==1.26.4
 pillow==10.3.0
 fastapi==0.111.0
 uvicorn==0.29.0
+aiofiles==23.2.1
+argparse==1.4.0
+werkzeug==3.0.3
