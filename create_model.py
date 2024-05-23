@@ -103,10 +103,12 @@ def build_model(num_classes, img_height, img_width):
         tf.keras.layers.Conv2D(128, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Dropout(0.2),
 
         tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.MaxPooling2D((2, 2)),                 
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Dropout(0.3),                
 
         tf.keras.layers.Flatten(),
 
@@ -117,7 +119,7 @@ def build_model(num_classes, img_height, img_width):
     ])
     
     optimizer = tf.keras.optimizers.Adam(
-        learning_rate=0.00001,  
+        learning_rate=0.0001,  
         beta_1=0.9,             
         beta_2=0.999,           
         epsilon=1e-07           
@@ -158,8 +160,8 @@ def main():
         model = build_model(num_classes=num_classes, img_height=img_height, img_width=img_width)
             
         callbacks = [
-            tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True),
-            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.000001)
+            tf.keras.callbacks.EarlyStopping(monitor='val_loss', verbose=1, patience=15, restore_best_weights=True),
+            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=1, patience=2, min_lr=0.000001)
         ]
 
         model.fit(
