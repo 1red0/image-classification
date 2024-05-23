@@ -137,10 +137,10 @@ def main():
     try:
         model_name = input("Enter the model name (default: 'model'): ") or 'model'
         data_dir = input("Enter the path to the dataset directory (default: 'data'): ") or 'data'
-        epochs = int(input("Enter the number of epochs to train the model (default: 15): ") or 15)
+        epochs = int(input("Enter the number of epochs to train the model (default: 30): ") or 30)
         batch_size = int(input("Enter the batch size (default: 32): ") or 32)
-        img_height = int(input("Enter the processing height of the image (default: 256): ") or 256)
-        img_width = int(input("Enter the processing width of the image (default: 256): ") or 256)
+        img_height = int(input("Enter the processing height of the images (default: 256): ") or 256)
+        img_width = int(input("Enter the processing width of the images (default: 256): ") or 256)
         
         data_dir = pathlib.Path(data_dir).with_suffix('')
 
