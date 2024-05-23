@@ -37,30 +37,36 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
     """Load training and validation datasets from directory."""
     convert_images_to_rgba(data_dir)
     
-    train_ds = tf.keras.utils.image_dataset_from_directory(
-        data_dir,
+    datagen = tf.keras.preprocessing.image.ImageDataGenerator(
         validation_split=0.2,
-        subset="training",
-        seed=123,
-        image_size=(img_height, img_width),
+        rotation_range=20,
+        shear_range=0.2,
+        horizontal_flip=True,
+        rescale=1./255,
+        height_shift_range=0.1,
+        width_shift_range=0.1,
+        brightness_range=(0.5,1.5),
+        zoom_range = [1, 1.5],
+        fill_mode='nearest'
+    )
+
+    train_ds = datagen.flow_from_directory(
+        data_dir,
+        target_size=(img_height, img_width),
         batch_size=batch_size,
-        shuffle=True
+        subset='training',
+        class_mode='categorical'
     )
     
-    val_ds = tf.keras.utils.image_dataset_from_directory(
+    val_ds = datagen.flow_from_directory(
         data_dir,
-        validation_split=0.2,
-        subset="validation",
-        seed=123,
-        image_size=(img_height, img_width),
+        target_size=(img_height, img_width),
         batch_size=batch_size,
-        shuffle=True
+        subset='validation',
+        class_mode='categorical'
     )
 
-    labels = train_ds.class_names
-
-    train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=tf.data.AUTOTUNE)
-    val_ds = val_ds.cache().prefetch(buffer_size=tf.data.AUTOTUNE)    
+    labels = train_ds.class_indices.keys()  
 
     return labels, train_ds, val_ds
 
@@ -79,14 +85,6 @@ def build_model(num_classes, img_height, img_width):
 
     model = tf.keras.models.Sequential([
         tf.keras.layers.Input(shape=(img_height, img_width, 3)),
-        
-        tf.keras.layers.RandomFlip("horizontal",
-                        input_shape=(img_height,
-                                    img_width,
-                                    3)),
-        tf.keras.layers.RandomRotation(0.1),
-        tf.keras.layers.RandomZoom(0.1),        
-        tf.keras.layers.Rescaling(1./255),
 
         tf.keras.layers.Conv2D(16, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
@@ -103,7 +101,6 @@ def build_model(num_classes, img_height, img_width):
         tf.keras.layers.Conv2D(128, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.Dropout(0.2),
 
         tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
@@ -127,7 +124,7 @@ def build_model(num_classes, img_height, img_width):
 
     model.compile(
         optimizer=optimizer,
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        loss='categorical_crossentropy',
         metrics=['accuracy']
     )
     
