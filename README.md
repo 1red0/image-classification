@@ -28,6 +28,8 @@ options:
                         Processing height of the images (default=256)
   --img_width IMG_WIDTH
                         Processing width of the images (default=256)
+  --validation_split VALIDATION_SPLIT
+                        Validation split (default=2e-1)
 ```
 
 #### classify.py
