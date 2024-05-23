@@ -210,7 +210,7 @@ def main():
         callbacks = [
             tf.keras.callbacks.EarlyStopping(monitor='val_loss', verbose=1, patience=15, restore_best_weights=True),
             tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=1, patience=3, min_lr=0.000001),
-            tf.keras.callbacks.ModelCheckpoint(filepath=f'models/{model_name}_best.keras', monitor='val_loss', save_best_only=True)
+            tf.keras.callbacks.ModelCheckpoint(filepath=f'models/{model_name}_best_accuracy.keras', monitor='accuracy', save_best_only=True)
         ]
 
         model.fit(
