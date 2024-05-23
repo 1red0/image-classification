@@ -38,15 +38,14 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
     convert_images_to_rgba(data_dir)
     
     data_gen = tf.keras.preprocessing.image.ImageDataGenerator(
-        rescale=1./255,
         validation_split=0.2,
-        rotation_range=20,
+        rotation_range=30,
         shear_range=0.2,
         horizontal_flip=True,
-        height_shift_range=0.1,
-        width_shift_range=0.1,
-        brightness_range=(0.5,1.5),
-        zoom_range = [1, 1.5],
+        height_shift_range=0.2,
+        width_shift_range=0.2,
+        brightness_range=(0.8,1.2),
+        zoom_range=0.2,
         fill_mode='nearest'
     )
 
@@ -83,46 +82,53 @@ def save_class_names(labels, filename):
         raise IOError(f"Error saving class names to {filename}: {e}")
 
 def build_model(num_classes, img_height, img_width):
-    """Build and compile a custom CNN model."""  
-
+    """Build and compile a custom CNN model."""
     model = tf.keras.models.Sequential([
         tf.keras.layers.Input(shape=(img_height, img_width, 3)),
 
-        tf.keras.layers.Conv2D(16, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.MaxPooling2D((2, 2)),
-
         tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D((2, 2)),
 
         tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D((2, 2)),
 
+        tf.keras.layers.Conv2D(128, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.Conv2D(128, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D((2, 2)),
 
         tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
         tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.Dropout(0.3),                
 
-        tf.keras.layers.Flatten(),
-
-        tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+        tf.keras.layers.Conv2D(512, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Conv2D(512, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
         tf.keras.layers.Dropout(0.5),
 
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+        tf.keras.layers.Dropout(0.5),
         tf.keras.layers.Dense(num_classes, activation='softmax')
     ])
-    
+
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=0.0001,  
         beta_1=0.9,             
         beta_2=0.999,           
         epsilon=1e-07           
-    )    
+    )
 
     model.compile(
         optimizer=optimizer,
@@ -131,6 +137,14 @@ def build_model(num_classes, img_height, img_width):
     )
     
     return model
+
+class CustomLogger(tf.keras.callbacks.Callback):
+    """Callback to log the learning rate and other metrics in float format."""
+    def on_epoch_end(self, epoch, logs=None):
+        lr = float(tf.keras.backend.get_value(self.model.optimizer.lr))
+        metrics = {k: float(v) for k, v in logs.items()}
+        metrics_str = ', '.join(f'{k}: {v:.6f}' for k, v in metrics.items())
+        print(f"Epoch {epoch+1}: Learning rate is {lr:.6f}, {metrics_str}")
 
 def main():
     warnings.filterwarnings("ignore")
@@ -159,8 +173,10 @@ def main():
         model = build_model(num_classes=num_classes, img_height=img_height, img_width=img_width)
             
         callbacks = [
-            tf.keras.callbacks.EarlyStopping(monitor='val_loss', verbose=1, patience=15, restore_best_weights=True),
-            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=1, patience=2, min_lr=0.000001)
+            tf.keras.callbacks.EarlyStopping(monitor='val_loss', verbose=0, patience=15, restore_best_weights=True),
+            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=0, patience=3, min_lr=0.000001),
+            tf.keras.callbacks.ModelCheckpoint(filepath=f'models/{model_name}_best.keras', monitor='val_loss', save_best_only=True),
+            CustomLogger()
         ]
 
         model.fit(
