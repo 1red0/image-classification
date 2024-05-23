@@ -13,6 +13,7 @@ Install dependencies `pip --no-cache-dir install -r requirements.txt`
 ```text
 usage: create_model.py [-h] --model_name MODEL_NAME [--data_dir DATA_DIR] [--epochs EPOCHS]
                        [--batch_size BATCH_SIZE] [--img_height IMG_HEIGHT] [--img_width IMG_WIDTH]
+                       [--validation_split VALIDATION_SPLIT]
 
 Train a deep learning model for image classification using TensorFlow.
 
