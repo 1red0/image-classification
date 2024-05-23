@@ -43,7 +43,7 @@ def is_image_file(filepath: str) -> bool:
     image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff'}
     return os.path.isfile(filepath) and os.path.splitext(filepath)[1].lower() in image_extensions
 
-def load_datasets(data_dir: str, img_height: int, img_width: int, batch_size: int, validation_split: float = 0.2) -> dict:
+def load_datasets(data_dir: str, img_height: int, img_width: int, batch_size: int, validation_split: float) -> dict:
     """
     Load training and validation datasets from directory.
 
@@ -65,12 +65,12 @@ def load_datasets(data_dir: str, img_height: int, img_width: int, batch_size: in
         rescale=1./255,
         validation_split=validation_split,
         rotation_range=30,
-        shear_range=0.2,
+        shear_range=2e-1,
         horizontal_flip=True,
-        height_shift_range=0.2,
-        width_shift_range=0.2,
-        brightness_range=(0.8, 1.2),
-        zoom_range=0.2,
+        height_shift_range=2e-1,
+        width_shift_range=2e-1,
+        brightness_range=(8e-1, 12e-1),
+        zoom_range=2e-1,
         fill_mode='nearest'
     )
 
@@ -160,8 +160,8 @@ def build_model(num_classes: int, img_height: int, img_width: int, regularizatio
 
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=learning_rate,  
-        beta_1=0.9,             
-        beta_2=0.999,           
+        beta_1=9e-1,             
+        beta_2=999e-3,           
         epsilon=1e-07           
     )
 
@@ -187,6 +187,7 @@ def main():
         parser.add_argument('--batch_size', type=int, default=32, help='Batch size (default=32)')
         parser.add_argument('--img_height', type=int, default=256, help='Processing height of the images (default=256)')
         parser.add_argument('--img_width', type=int, default=256, help='Processing width of the images (default=256)')
+        parser.add_argument('--validation_split', type=float, default=2e-1, help='Validation split (default=2e-1)')
 
         args = parser.parse_args()
 
@@ -196,6 +197,7 @@ def main():
         batch_size = args.batch_size
         img_height = args.img_height
         img_width = args.img_width
+        validation_split = args.validation_split
 
         data_dir = pathlib.Path(data_dir).with_suffix('')
 
@@ -206,7 +208,7 @@ def main():
 
         tf.keras.mixed_precision.set_global_policy('mixed_float16')
 
-        datasets = load_datasets(data_dir, img_height, img_width, batch_size)
+        datasets = load_datasets(data_dir, img_height, img_width, batch_size, validation_split)
         labels = datasets['labels']
         train_ds = datasets['train_ds']
         val_ds = datasets['val_ds']
@@ -219,15 +221,15 @@ def main():
         model = build_model(num_classes=num_classes, 
                             img_height=img_height, 
                             img_width=img_width, 
-                            regularization_rate=0.001, 
-                            min_dropout_rate=0.3,
-                            max_dropout_rate=0.5, 
-                            learning_rate=0.0001)
+                            regularization_rate=1e-3, 
+                            min_dropout_rate=3e-1,
+                            max_dropout_rate=5e-1, 
+                            learning_rate=1e-4)
 
         callbacks = [
-            tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.00000001, verbose=1, mode='auto', patience=15, restore_best_weights=True),
-            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=1, mode='auto', patience=3, min_delta=0.000001, cooldown=100, min_lr=0),
-            tf.keras.callbacks.ModelCheckpoint(filepath=f'models/{model_name}_best_accuracy.keras', monitor='accuracy', save_best_only=True)
+            tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-8, verbose=1, mode='auto', patience=15, restore_best_weights=True),
+            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=5e-1, verbose=1, mode='auto', patience=3, min_delta=1e-6, cooldown=100, min_lr=0),
+            tf.keras.callbacks.ModelCheckpoint(filepath=f'models/{model_name}_checkpoint.keras', save_best_only=True)
         ]
 
         model.fit(

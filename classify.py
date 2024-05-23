@@ -50,7 +50,7 @@ def preprocess_image(image_path: str, img_height: int, img_width: int) -> tf.Ten
     except Exception as e:
         raise RuntimeError(f"Error preprocessing image '{image_path}': {e}")
 
-def classify_image(model: tf.keras.Model, img_array: np.ndarray, class_names: List[str], top_k: int = 3) -> Tuple[List[str], List[float]]:
+def classify_image(model: tf.keras.Model, img_array: np.ndarray, class_names: List[str], top_k: int) -> Tuple[List[str], List[float]]:
     """
     Classify the class of the input image using the trained model.
 
@@ -108,7 +108,7 @@ def main():
 
         class_names = load_class_names(labels_file)
         img_array = preprocess_image(image_path, img_height, img_width)
-        top_classes, top_confidences = classify_image(model, img_array, class_names, top_k=top_k)
+        top_classes, top_confidences = classify_image(model, img_array, class_names, top_k)
 
         print("Classifications:")
         for label, confidence in zip(top_classes, top_confidences):
