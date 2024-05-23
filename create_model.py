@@ -42,40 +42,34 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
     """Load training and validation datasets from directory."""
     convert_images_to_rgba(data_dir)
     
-    datagen = ImageDataGenerator(
-        validation_split=0.2,
-        rescale=1./255,
-        rotation_range=40,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        shear_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True,
-        fill_mode='nearest'
-    )
     
-    train_ds = datagen.flow_from_directory(
+    train_ds = tf.keras.utils.image_dataset_from_directory(
         data_dir,
+        validation_split=0.2,
         subset="training",
         seed=123,
-        target_size=(img_height, img_width),
+        image_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode='categorical', 
         shuffle=True
     )
     
-    val_ds = datagen.flow_from_directory(
+    val_ds = tf.keras.utils.image_dataset_from_directory(
         data_dir,
+        validation_split=0.2,
         subset="validation",
         seed=123,
-        target_size=(img_height, img_width),
+        image_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode='categorical', 
         shuffle=True
     )
 
-    labels = list(train_ds.class_indices.keys())
+    labels = train_ds.class_names
     
+    AUTOTUNE = tf.data.AUTOTUNE
+
+    train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+    val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)    
+
     return labels, train_ds, val_ds
 
 def save_class_names(labels, filename):
@@ -89,51 +83,53 @@ def save_class_names(labels, filename):
         raise IOError(f"Error saving class names to {filename}: {e}")
 
 def build_model(num_classes, img_height, img_width):
-    """Build and compile a custom CNN model."""
+    """Build and compile a custom CNN model."""  
+
     model = Sequential([
         layers.Input(shape=(img_height, img_width, 3)),
-        layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
-        layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
-        layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2), strides=(2,2)),
-        layers.Dropout(0.3),
+        
+        layers.RandomFlip("horizontal",
+                        input_shape=(img_height,
+                                    img_width,
+                                    3)),
+        layers.RandomRotation(0.1),
+        layers.RandomZoom(0.1),        
+        layers.Rescaling(1./255),
 
-        layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
-        layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+        layers.Conv2D(16, 3, padding='same', activation='relu'),
         layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2), strides=(2,2)),
-        layers.Dropout(0.4),
+        layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(256, (3, 3), activation='relu', padding='same'),
-        layers.Conv2D(256, (3, 3), activation='relu', padding='same'),
+        layers.Conv2D(32, 3, padding='same', activation='relu'),
         layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2), strides=(2,2)),
-        layers.Dropout(0.4),
+        layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(512, (3, 3), activation='relu', padding='same'),
-        layers.Conv2D(512, (3, 3), activation='relu', padding='same'),
+        layers.Conv2D(64, 3, padding='same', activation='relu'),
         layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2), strides=(2,2)),
-        layers.Dropout(0.5),
+        layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(512, (3, 3), activation='relu', padding='same'),
-        layers.Conv2D(512, (3, 3), activation='relu', padding='same'),
+        layers.Conv2D(128, 3, padding='same', activation='relu'),
         layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2), strides=(2,2)),
-        layers.Dropout(0.5),
+        layers.MaxPooling2D((2, 2)),
+
+        layers.Conv2D(256, 3, padding='same', activation='relu'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),                 
 
         layers.Flatten(),
-        layers.Dense(1024, activation='relu'),
-        layers.Dropout(0.5),
+        
         layers.Dense(512, activation='relu'),
+        layers.BatchNormalization(),
         layers.Dropout(0.5),
+
         layers.Dense(num_classes, activation='softmax'),
-        layers.BatchNormalization()
+        layers.BatchNormalization(),
+        
     ])
     
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.00001),
-        loss='categorical_crossentropy',
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=['accuracy']
     )
     
