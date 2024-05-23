@@ -2,6 +2,7 @@ import os
 import tensorflow as tf
 import numpy as np
 from tensorflow.keras.models import load_model
+import warnings
 
 def load_class_names(labels_file):
     """Load class names from a text file."""
@@ -41,6 +42,7 @@ def classify_image(model, img_array, class_names, top_k=3):
         raise RuntimeError(f"Error classifying image: {e}")
 
 def main():
+    warnings.filterwarnings("ignore")
     try:
         model_name = input("Enter the model name (default: model): ") or 'model'
         image_path = input("Enter the path to the image: ")

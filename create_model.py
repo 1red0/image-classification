@@ -5,6 +5,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 from PIL import Image
 import warnings
 
@@ -59,7 +60,8 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
         seed=123,
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode='categorical'
+        class_mode='categorical', 
+        shuffle=True
     )
     
     val_ds = datagen.flow_from_directory(
@@ -68,7 +70,8 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
         seed=123,
         target_size=(img_height, img_width),
         batch_size=batch_size,
-        class_mode='categorical'
+        class_mode='categorical', 
+        shuffle=True
     )
 
     labels = list(train_ds.class_indices.keys())
@@ -91,24 +94,38 @@ def build_model(num_classes, img_height, img_width):
         layers.Input(shape=(img_height, img_width, 3)),
         layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
         layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2)),
+        layers.Dropout(0.3),
+        layers.Conv2D(32, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2), strides=(2,2)),
         layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
         layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2)),
+        layers.Dropout(0.4),
+        layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2), strides=(2,2)),
         layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
         layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2)),
+        layers.MaxPooling2D((2, 2), strides=(2,2)),
+        layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.Dropout(0.4),
         layers.Conv2D(256, (3, 3), activation='relu', padding='same'),
         layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2)),
+        layers.Dropout(0.4),
+        layers.Conv2D(256, (3, 3), activation='relu', padding='same'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2), strides=(2,2)),        
         layers.Flatten(),
         layers.Dense(512, activation='relu'),
+        layers.BatchNormalization(),
         layers.Dropout(0.5),
-        layers.Dense(num_classes, activation='softmax')
+        layers.Dense(num_classes, activation='softmax'),
+        layers.BatchNormalization()
     ])
     
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), 
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.00001),
         loss='categorical_crossentropy',
         metrics=['accuracy']
     )
@@ -140,10 +157,10 @@ def main():
         num_classes = len(labels)
         
         model = build_model(num_classes=num_classes, img_height=img_height, img_width=img_width)
-        
+            
         callbacks = [
             EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True),
-            ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.00001)
+            ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.000001)
         ]
 
         model.fit(

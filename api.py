@@ -6,6 +6,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import warnings
 
 app = FastAPI()
 
@@ -84,6 +85,7 @@ async def classify(file: UploadFile = File(...), top_k: int = 3):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == '__main__':
+    warnings.filterwarnings("ignore")
     try:
         if not os.path.exists('uploads'):
             os.makedirs('uploads')
