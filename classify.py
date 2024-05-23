@@ -2,9 +2,6 @@ import os
 import tensorflow as tf
 import numpy as np
 import warnings
-from tensorflow.keras.models import load_model
-from tensorflow.keras.utils import load_img, img_to_array
-from tensorflow.nn import softmax
 
 def load_class_names(labels_file):
     """Load class names from a text file."""
@@ -20,8 +17,8 @@ def load_class_names(labels_file):
 def preprocess_image(image_path, img_height, img_width):
     """Preprocess the image to the required size and format."""
     try:
-        img = load_img(image_path, target_size=(img_height, img_width))
-        img_array = img_to_array(img)
+        img = tf.keras.utils.load_img(image_path, target_size=(img_height, img_width))
+        img_array = tf.keras.utils.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
         return img_array
     except FileNotFoundError:
@@ -33,7 +30,7 @@ def classify_image(model, img_array, class_names, top_k=3):
     """Classify the class of the input image using the trained model."""
     try:
         classifications = model.predict(img_array)
-        scores = softmax(classifications[0])
+        scores = tf.nn.softmax(classifications[0])
         top_indices = np.argsort(scores)[-top_k:][::-1]
 
         top_classes = [class_names[idx] for idx in top_indices]
@@ -55,7 +52,7 @@ def main():
         labels_file = os.path.join('labels', model_name + '.txt')
 
         try:
-            model = load_model(os.path.join('models', model_name + '.keras'))
+            model = tf.keras.models.load_model(os.path.join('models', model_name + '.keras'))
         except FileNotFoundError:
             raise FileNotFoundError(f"Model file 'models/{model_name}.keras' not found.")
         except Exception as e:

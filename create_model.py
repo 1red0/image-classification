@@ -1,26 +1,16 @@
 import os
 import pathlib
-from tensorflow.data import AUTOTUNE
-from tensorflow.keras import layers, regularizers
-from tensorflow.keras.utils import image_dataset_from_directory
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import SparseCategoricalCrossentropy
-from tensorflow.keras.mixed_precision import set_global_policy
-from tensorflow.config.experimental import list_physical_devices, set_memory_growth
-
-
-from PIL import Image
+import tensorflow as tf
 import warnings
+from PIL import Image
 
 def set_memory():
     """Set memory growth for GPUs to avoid OOM errors."""
-    gpus = list_physical_devices('GPU')
+    gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
         try:
             for gpu in gpus:
-                set_memory_growth(gpu, True)
+                tf.config.experimental.set_memory_growth(gpu, True)
         except RuntimeError as e:
             print(f"Error setting memory growth: {e}")
 
@@ -47,8 +37,7 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
     """Load training and validation datasets from directory."""
     convert_images_to_rgba(data_dir)
     
-    
-    train_ds = image_dataset_from_directory(
+    train_ds = tf.keras.utils.image_dataset_from_directory(
         data_dir,
         validation_split=0.2,
         subset="training",
@@ -58,7 +47,7 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
         shuffle=True
     )
     
-    val_ds = image_dataset_from_directory(
+    val_ds = tf.keras.utils.image_dataset_from_directory(
         data_dir,
         validation_split=0.2,
         subset="validation",
@@ -70,8 +59,8 @@ def load_datasets(data_dir, img_height, img_width, batch_size):
 
     labels = train_ds.class_names
 
-    train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-    val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)    
+    train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=tf.data.AUTOTUNE)
+    val_ds = val_ds.cache().prefetch(buffer_size=tf.data.AUTOTUNE)    
 
     return labels, train_ds, val_ds
 
@@ -88,46 +77,46 @@ def save_class_names(labels, filename):
 def build_model(num_classes, img_height, img_width):
     """Build and compile a custom CNN model."""  
 
-    model = Sequential([
-        layers.Input(shape=(img_height, img_width, 3)),
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Input(shape=(img_height, img_width, 3)),
         
-        layers.RandomFlip("horizontal",
+        tf.keras.layers.RandomFlip("horizontal",
                         input_shape=(img_height,
                                     img_width,
                                     3)),
-        layers.RandomRotation(0.1),
-        layers.RandomZoom(0.1),        
-        layers.Rescaling(1./255),
+        tf.keras.layers.RandomRotation(0.1),
+        tf.keras.layers.RandomZoom(0.1),        
+        tf.keras.layers.Rescaling(1./255),
 
-        layers.Conv2D(16, (3, 3), padding='same', activation='relu'),
-        layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(16, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(32, (3, 3), padding='same', activation='relu'),
-        layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
-        layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(128, (3, 3), padding='same', activation='relu'),
-        layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(128, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
 
-        layers.Conv2D(256, (3, 3), padding='same', activation='relu'),
-        layers.BatchNormalization(),
-        layers.MaxPooling2D((2, 2)),                 
+        tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D((2, 2)),                 
 
-        layers.Flatten(),
+        tf.keras.layers.Flatten(),
 
-        layers.Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
-        layers.Dropout(0.5),
+        tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+        tf.keras.layers.Dropout(0.5),
 
-        layers.Dense(num_classes, activation='softmax')
+        tf.keras.layers.Dense(num_classes, activation='softmax')
     ])
     
-    optimizer = Adam(
+    optimizer = tf.keras.optimizers.Adam(
         learning_rate=0.00001,  
         beta_1=0.9,             
         beta_2=0.999,           
@@ -136,7 +125,7 @@ def build_model(num_classes, img_height, img_width):
 
     model.compile(
         optimizer=optimizer,
-        loss=SparseCategoricalCrossentropy(from_logits=True),
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=['accuracy']
     )
     
@@ -156,7 +145,7 @@ def main():
 
         set_memory()
 
-        set_global_policy('mixed_float16')
+        tf.keras.mixed_precision.set_global_policy('mixed_float16')
         
         labels, train_ds, val_ds = load_datasets(data_dir, img_height, img_width, batch_size)
         
@@ -169,8 +158,8 @@ def main():
         model = build_model(num_classes=num_classes, img_height=img_height, img_width=img_width)
             
         callbacks = [
-            EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
-            ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.000001)
+            tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True),
+            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.000001)
         ]
 
         model.fit(
