@@ -145,8 +145,8 @@ def build_model(num_classes, img_height, img_width):
 def main():
     warnings.filterwarnings("ignore")
     try:
-        data_dir = input("Enter the path to the dataset directory (default: 'data'): ") or 'data'
         model_name = input("Enter the model name (default: 'model'): ") or 'model'
+        data_dir = input("Enter the path to the dataset directory (default: 'data'): ") or 'data'
         epochs = int(input("Enter the number of epochs to train the model (default: 15): ") or 15)
         batch_size = int(input("Enter the batch size (default: 32): ") or 32)
         img_height = int(input("Enter the processing height of the image (default: 256): ") or 256)

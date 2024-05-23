@@ -13,8 +13,8 @@ To create a new model: `python create_model.py`
 Inputs for `create_model.py`:
 
 ```text
-Enter the path to the dataset directory (default: 'data'):
 Enter the model name (default: 'model'):
+Enter the path to the dataset directory (default: 'data'):
 Enter the number of epochs to train the model (default: 15):
 Enter the batch size (default: 32):
 Enter the processing height of the image (default: 256):
