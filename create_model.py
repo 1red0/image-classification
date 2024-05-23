@@ -62,6 +62,7 @@ def load_datasets(data_dir: str, img_height: int, img_width: int, batch_size: in
     convert_images_to_rgba(data_dir)
     
     data_gen = tf.keras.preprocessing.image.ImageDataGenerator(
+        rescale=1./255,
         validation_split=validation_split,
         rotation_range=30,
         shear_range=0.2,
@@ -111,7 +112,7 @@ def save_class_names(labels: list, filename: str) -> None:
     except IOError as e:
         raise IOError(f"Error saving class names to {filename}: {e}")
 
-def build_model(num_classes: int, img_height: int, img_width: int, regularization_rate=0.001, dropout_rate=0.5, learning_rate=0.0001) -> tf.keras.Model:
+def build_model(num_classes: int, img_height: int, img_width: int, regularization_rate: float, min_dropout_rate: float, max_dropout_rate: float, learning_rate: float) -> tf.keras.Model:
     """
     Build and compile a custom CNN model with improvements.
 
@@ -120,7 +121,8 @@ def build_model(num_classes: int, img_height: int, img_width: int, regularizatio
         img_height (int): The height of the images that the model will process.
         img_width (int): The width of the images that the model will process.
         regularization_rate (float): Regularization rate for Dense layers.
-        dropout_rate (float): Dropout rate for Dropout layers.
+        min_dropout_rate (float): Minimum dropout rate for Dropout layers.
+        max_dropout_rate (float): Maximum dropout rate for Dropout layers.
         learning_rate (float): Learning rate for the optimizer.
 
     Returns:
@@ -128,6 +130,10 @@ def build_model(num_classes: int, img_height: int, img_width: int, regularizatio
     """
     model = tf.keras.models.Sequential([
         tf.keras.layers.Input(shape=(img_height, img_width, 3)),
+
+        tf.keras.layers.Conv2D(16, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.BatchNormalization(),        
         
         tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.MaxPooling2D((2, 2)),
@@ -140,10 +146,15 @@ def build_model(num_classes: int, img_height: int, img_width: int, regularizatio
         tf.keras.layers.Conv2D(128, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.MaxPooling2D((2, 2)),
         tf.keras.layers.BatchNormalization(),
+
+        tf.keras.layers.Conv2D(256, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.Dropout(min_dropout_rate),
         
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(regularization_rate)),
-        tf.keras.layers.Dropout(dropout_rate),
+        tf.keras.layers.Dropout(max_dropout_rate),
         tf.keras.layers.Dense(num_classes, activation='softmax')
     ])
 
@@ -205,11 +216,17 @@ def main():
 
         num_classes = len(labels)
 
-        model = build_model(num_classes=num_classes, img_height=img_height, img_width=img_width)
+        model = build_model(num_classes=num_classes, 
+                            img_height=img_height, 
+                            img_width=img_width, 
+                            regularization_rate=0.001, 
+                            min_dropout_rate=0.3,
+                            max_dropout_rate=0.5, 
+                            learning_rate=0.0001)
 
         callbacks = [
-            tf.keras.callbacks.EarlyStopping(monitor='val_loss', verbose=1, patience=15, restore_best_weights=True),
-            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=1, patience=3, min_lr=0.000001),
+            tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.00000001, verbose=1, mode='auto', patience=15, restore_best_weights=True),
+            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, verbose=1, mode='auto', patience=3, min_delta=0.000001, cooldown=100, min_lr=0),
             tf.keras.callbacks.ModelCheckpoint(filepath=f'models/{model_name}_best_accuracy.keras', monitor='accuracy', save_best_only=True)
         ]
 
