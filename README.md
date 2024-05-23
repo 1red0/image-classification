@@ -8,7 +8,7 @@ A image classification model written in Python using Tensorflow
 
 Install dependencies `pip --no-cache-dir install -r requirements.txt`
 
-The `create_model.py` script
+#### create_model.py
 
 ```text
 usage: create_model.py [-h] --model_name MODEL_NAME [--data_dir DATA_DIR] [--epochs EPOCHS]
@@ -30,7 +30,7 @@ options:
                         Processing width of the images (default=256)
 ```
 
-The `classify.py` script:
+#### classify.py
 
 ```text
 usage: classify.py [-h] --model_name MODEL_NAME --image_path IMAGE_PATH [--top_k TOP_K] [--img_height IMG_HEIGHT]
