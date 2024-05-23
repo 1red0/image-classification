@@ -216,7 +216,7 @@ def main():
         save_labels_to = pathlib.Path('labels') / f"{model_name}.txt"
         save_class_names(labels, save_labels_to)
         
-        save_labels_checkpoint_to = pathlib.Path('labels') / f"{model_name}.txt"
+        save_labels_checkpoint_to = pathlib.Path('labels') / f"{model_name}_checkpoint.txt"
         save_class_names(labels, save_labels_checkpoint_to)
 
         num_classes = len(labels)
