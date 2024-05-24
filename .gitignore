@@ -160,9 +160,15 @@ cython_debug/
 #.idea/
 
 models/*.keras
+
 labels/*.txt
+
 data/**/*.jpg
 data/**/*.jpeg
 data/**/*.png
+
+uploads/**/*.jpg
+uploads/**/*.jpeg
+uploads/**/*.png
 
 .vscode/

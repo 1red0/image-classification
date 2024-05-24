@@ -54,19 +54,24 @@ options:
                         Processing width of the image (default=256)
 ```
 
-### API
+### Webapp
 
-#### Starting the API with Python
+#### Starting the webapp with Python
 
-To launch the API `python api.py`
+Run `python api.py`
 
-#### Starting the API with Docker
+#### Starting the webapp with Docker
 
 First build the image: `docker build -t image-classifier-app .`
 
-Running the container using docker run: `docker run -p 5000:5000 image-classifier-app`
+Running the container using docker run: `docker run -p 5200:5200 image-classifier-app`
 
 Running the container using docker-compose: `docker-compose up -d`
+
+#### Interface
+
+![screenshot](docs/images/screenshot.png)
+The application can be accessed from: `http://localhost:5200/`
 
 #### Using the API
 
