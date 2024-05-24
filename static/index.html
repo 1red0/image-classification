@@ -13,7 +13,7 @@
         <h1>Image Classifier</h1>
         <div class="form-group">
           <label for="model">Select Model:</label>
-          <select id="model" name="model">
+          <select class="styled-input" id="model" name="model">
             <!-- Options will be dynamically populated -->
           </select>
           <button id="set-model-button" disabled>Set Model</button>
@@ -21,14 +21,20 @@
 
         <div class="form-group">
           <label for="num-labels">Number of Labels:</label>
-          <select id="num-labels" name="num-labels">
+          <select class="styled-input" id="num-labels" name="num-labels">
             <!-- Options will be dynamically populated -->
           </select>
         </div>
 
         <div class="form-group">
           <label for="file">Upload Image:</label>
-          <input type="file" id="file" name="file" accept="image/*" />
+          <input
+            class="styled-input"
+            type="file"
+            id="file"
+            name="file"
+            accept="image/*"
+          />
           <button id="classify-button">Classify</button>
         </div>
       </div>

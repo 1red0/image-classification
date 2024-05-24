@@ -43,8 +43,8 @@ label {
 }
 
 input[type="file"] {
-    width: 100%;
     margin-bottom: 10px;
+    margin-top: 5px;
 }
 
 select {
@@ -74,7 +74,6 @@ button:disabled {
     cursor: not-allowed; /* Change cursor to not-allowed */
 }
 
-
 .results-container {
     flex: 3; /* 75% of the container width */
     padding: 20px;
@@ -91,7 +90,7 @@ button:disabled {
 
 .results-container .results {
     overflow-y: auto;
-    height: calc(25% - 12%); 
+    height: calc(25% - 3%); 
 }
 
 .results-container .image-preview {
@@ -101,7 +100,21 @@ button:disabled {
     align-items: center;        
     text-align: center;
     margin-bottom: 20px;
-    height: calc(75% - 12%); 
+    height: calc(75% - 22%); 
+}
+
+.results ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.results li {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .image-preview img {
@@ -110,3 +123,19 @@ button:disabled {
     border-radius: 4px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+
+/* Styled Input */
+.styled-input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.3s ease;
+}
+
+.styled-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
