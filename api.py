@@ -6,6 +6,7 @@ import tensorflow as tf
 import numpy as np
 import uvicorn
 import asyncio
+import json
 from werkzeug.utils import secure_filename
 from typing import List, Tuple, AsyncGenerator
 from pydantic import BaseModel
@@ -108,7 +109,7 @@ async def get_models():
 @app.get("/num_labels")
 async def get_num_labels(model_name: str):
     """
-    Retrieves the number of labels from a text file corresponding to a given model name.
+    Retrieves the number of labels from a JSON file corresponding to a given model name.
 
     Args:
         model_name (str): The name of the model whose labels file needs to be accessed.
@@ -118,13 +119,17 @@ async def get_num_labels(model_name: str):
         HTTPException: Returns an error response if the file does not exist or an exception occurs.
     """
     try:
-        labels_file_path = os.path.join('labels', model_name + '.txt')
+        labels_file_path = os.path.join('labels', model_name + '.json')
         if os.path.exists(labels_file_path):
-            with open(labels_file_path, 'r') as labels_file:
-                num_labels = sum(1 for _ in labels_file)
+            with open(labels_file_path, 'r', encoding='utf-8') as labels_file:
+                labels = json.load(labels_file)
+                num_labels = len(labels)
             return JSONResponse(content={"num_labels": num_labels})
         else:
             raise HTTPException(status_code=404, detail="Labels file not found.")
+    except json.JSONDecodeError:
+        logging.error(f"Error decoding JSON from '{labels_file_path}'")
+        raise HTTPException(status_code=500, detail="Error decoding JSON.")
     except Exception as e:
         logging.error(f"Failed to fetch labels: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch labels: {e}")
@@ -134,10 +139,10 @@ img_width = 256
 
 async def load_class_names(labels_file: str) -> List[str]:
     """
-    Asynchronously reads a text file containing class names, one per line, and returns them as a list of strings.
+    Asynchronously reads a JSON file containing class names and returns them as a list of strings.
 
     Args:
-        labels_file (str): Path to the text file containing class names.
+        labels_file (str): Path to the JSON file containing class names.
 
     Returns:
         List[str]: List of class names extracted from the file.
@@ -148,13 +153,18 @@ async def load_class_names(labels_file: str) -> List[str]:
         IOError: For any other exceptions while reading the file.
     """
     try:
-        async with aiofiles.open(labels_file, 'r') as file:
-            class_names = [line.strip() async for line in file]
+        async with aiofiles.open(labels_file, 'r', encoding='utf-8') as file:
+            content = await file.read()
+            class_names = json.loads(content)
         return class_names
     except (FileNotFoundError, PermissionError) as e:
         error_msg = f"{e.__class__.__name__} occurred while trying to access {labels_file}: {e}"
         logging.error(error_msg)
         raise type(e)(error_msg)
+    except json.JSONDecodeError as e:
+        error_msg = f"JSONDecodeError occurred while trying to decode {labels_file}: {e}"
+        logging.error(error_msg)
+        raise IOError(error_msg)
     except Exception as e:
         error_msg = f"Failed to load class names from {labels_file}: {e}"
         logging.error(error_msg)

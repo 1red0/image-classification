@@ -161,7 +161,7 @@ cython_debug/
 
 models/*.keras
 
-labels/*.txt
+labels/*.json
 
 data/**/*.jpg
 data/**/*.jpeg

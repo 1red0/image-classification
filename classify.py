@@ -1,28 +1,32 @@
 import argparse
 import logging
 import pathlib
+import json
 from typing import List, Tuple
 import tensorflow as tf
 import numpy as np
 
 def load_class_names(labels_file: str) -> List[str]:
     """
-    Load class names from a text file.
+    Load class names from a JSON file.
 
     Args:
-    - labels_file: A string representing the path to the text file containing class names.
+    - labels_file: A string representing the path to the JSON file containing class names.
 
     Returns:
     - A list of strings, where each string is a class name extracted from the file.
     """
     try:
-        with open(labels_file, 'r') as file:
-            class_names = [line.strip() for line in file.readlines()]
+        with open(labels_file, 'r', encoding='utf-8') as file:
+            class_names = json.load(file)
         return class_names
     except FileNotFoundError:
         raise FileNotFoundError(f"Labels file '{labels_file}' not found.")
+    except json.JSONDecodeError:
+        raise RuntimeError(f"Error decoding JSON from '{labels_file}'.")
     except Exception as e:
         raise RuntimeError(f"Error loading class names from '{labels_file}': {e}")
+
 
 
 def preprocess_image(image_path: str, img_height: int, img_width: int) -> tf.Tensor:

@@ -1,6 +1,7 @@
 import argparse
 import os
 import pathlib
+import json
 import tensorflow as tf
 from PIL import Image
 
@@ -98,7 +99,7 @@ def load_datasets(data_dir: str, img_height: int, img_width: int, batch_size: in
 
 def save_class_names(labels: list, filename: str) -> None:
     """
-    Save class names to a file.
+    Save class names to a JSON file.
 
     Args:
     - labels (list): A list of strings, each representing a class name.
@@ -107,8 +108,7 @@ def save_class_names(labels: list, filename: str) -> None:
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     try:
         with open(filename, 'w', encoding='utf-8') as f:
-            for class_name in labels:
-                f.write(f"{class_name}\n")
+            json.dump(labels, f, ensure_ascii=False, indent=4)
     except IOError as e:
         raise IOError(f"Error saving class names to {filename}: {e}")
 
@@ -213,10 +213,10 @@ def main():
         train_ds = datasets['train_ds']
         val_ds = datasets['val_ds']
 
-        save_labels_to = pathlib.Path('labels') / f"{model_name}.txt"
+        save_labels_to = pathlib.Path('labels') / f"{model_name}.json"
         save_class_names(labels, save_labels_to)
         
-        save_labels_checkpoint_to = pathlib.Path('labels') / f"{model_name}_checkpoint.txt"
+        save_labels_checkpoint_to = pathlib.Path('labels') / f"{model_name}_checkpoint.json"
         save_class_names(labels, save_labels_checkpoint_to)
 
         num_classes = len(labels)
