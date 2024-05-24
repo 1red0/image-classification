@@ -257,7 +257,7 @@ async def classify(file: UploadFile = File(...), top_k: int = 3) -> JSONResponse
             async with aiofiles.open(file_path, 'wb') as f:
                 await f.write(content)
             
-            class_names = await load_class_names(os.path.join('labels', model_name + '.txt'))
+            class_names = await load_class_names(os.path.join('labels', model_name + '.json'))
             img_array = preprocess_image(file_path, img_height, img_width)
             top_classes, top_confidences = classify_image(model, img_array, class_names, top_k=top_k)
             top_confidences = [float(f'{conf:.2f}') for conf in top_confidences]
