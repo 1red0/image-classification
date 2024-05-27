@@ -4,6 +4,7 @@ services:
     image: image-classifier-app
     volumes:
       - images:/uploads
+      - uploads:/uploads
     ports:
       - "5000:5000"
     environment:
