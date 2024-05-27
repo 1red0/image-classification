@@ -37,9 +37,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     
     yield
 
-def create_app(path: str):
+def create_app(path: str) -> FastAPI:
+    """
+    Initializes a FastAPI application with specific middleware for CORS handling and mounts a directory for serving static files.
+
+    Args:
+        path (str): A string specifying the directory path where static files are located.
+
+    Returns:
+        FastAPI: Configured FastAPI application instance ready to be run with a web server.
+    """
     app = FastAPI(lifespan=lifespan)
 
+    # Add CORS middleware to allow all origins, credentials, methods, and headers
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -48,11 +58,18 @@ def create_app(path: str):
         allow_headers=["*"],
     )
 
+    # Mount the specified directory for serving static files under the URL path '/static'
     app.mount("/static", StaticFiles(directory=path), name="static")
 
     return app
 
 def start_server(app: FastAPI):
+    """
+    Initializes a server for a FastAPI application, handling file system operations and server startup with error management.
+
+    Args:
+        app (FastAPI): The FastAPI application to be served.
+    """
     try:
         uploads_path = pathlib.Path('../uploads')
         uploads_path.mkdir(parents=True, exist_ok=True)
