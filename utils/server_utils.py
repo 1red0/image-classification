@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import pathlib
-from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 from typing import AsyncGenerator
@@ -9,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.concurrency import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from services.classify_services import load_model
+from fastapi.staticfiles import StaticFiles
 
 model_lock = asyncio.Lock()
 model = None
