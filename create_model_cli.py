@@ -1,10 +1,13 @@
 import argparse
+import logging
 import os
 import pathlib
 import tensorflow as tf
 
-from utils.config_utils import set_memory
+from utils.config_utils import set_logging_level, set_memory
 from services.creation_services import build_model, load_datasets, save_class_names
+
+set_logging_level(logging.INFO)
 
 def main():
     """
@@ -79,15 +82,11 @@ def main():
         model.save(save_models_to)
 
     except KeyboardInterrupt:
-        print("\nModel creation interrupted. Exiting gracefully.")
-    except FileNotFoundError as e:
-        print(f"File not found error: {e}")
-    except IOError as e:
-        print(f"IO error occurred: {e}")
-    except RuntimeError as e:
-        print(f"Runtime error occurred: {e}")
+        logging.info("Model creation interrupted. Exiting gracefully.")
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        logging.error(f"Error occurred: {e}")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logging.error(f"An unexpected error occurred: {e}")
 
 if __name__ == '__main__':
     main()

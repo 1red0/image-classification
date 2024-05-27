@@ -2,6 +2,9 @@ import argparse
 import logging
 
 from services.classify_services import classify_image, load_class_names, load_labels, load_model, preprocess_image
+from utils.config_utils import set_logging_level
+
+set_logging_level(logging.INFO)
 
 def main():
     """
