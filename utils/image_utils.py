@@ -3,9 +3,6 @@ import os
 from PIL import Image
 import tensorflow as tf
 
-img_height = 256
-img_width = 256
-
 def convert_images_to_rgba(directory: str) -> None:
     """
     Convert images with transparency to RGBA format.
@@ -23,7 +20,7 @@ def convert_images_to_rgba(directory: str) -> None:
                             img = img.convert("RGBA")
                             img.save(filepath)
                 except Exception as e:
-                    print(f"Error processing {filepath}: {e}")
+                    logging.error(f"Error processing {filepath}: {e}")
 
 def is_image_file(filepath: str) -> bool:
     """Check if a file is an image."""

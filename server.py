@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from services.classify_services import classify_image, load_class_names, load_model, preprocess_image
 from utils.config_utils import set_logging_level
 from utils.server_utils import create_app, start_server, model_lock, model
-from utils.image_utils import img_height, img_width
+from utils.global_vars_utils import img_height, img_width
 
 set_logging_level(logging.INFO)
 

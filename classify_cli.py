@@ -4,20 +4,20 @@ import logging
 from services.classify_services import classify_image, load_class_names, load_labels, load_model, preprocess_image
 from utils.config_utils import set_logging_level
 
-set_logging_level(logging.INFO)
-
 def main():
     """
     Orchestrates the process of loading a machine learning model, preprocessing an image, classifying the image using the model,
     and displaying the classification results.
     """
     try:
+        set_logging_level(logging.INFO)
+
         parser = argparse.ArgumentParser(description='Image classification script')
         parser.add_argument('--model_name', type=str, required=True, help='Name of the model (required)')
         parser.add_argument('--image_path', type=str, required=True, help='Path to the image (required)')
-        parser.add_argument('--top_k', type=int, default=3, help='Number of classes to display (default=3)')
-        parser.add_argument('--img_height', type=int, default=256, help='Processing height of the image (default=256)')
-        parser.add_argument('--img_width', type=int, default=256, help='Processing width of the image (default=256)')
+        parser.add_argument('--top_k', type=int, required=False, default=3, help='Number of classes to display (default=3)')
+        parser.add_argument('--img_height', type=int, required=False, default=256, help='Processing height of the image (default=256)')
+        parser.add_argument('--img_width', type=int, required=False, default=256, help='Processing width of the image (default=256)')
 
         args = parser.parse_args()
 

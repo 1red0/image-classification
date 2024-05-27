@@ -2,12 +2,9 @@ import argparse
 import logging
 import os
 import pathlib
-import tensorflow as tf
 
-from utils.config_utils import set_logging_level, set_memory
+from utils.config_utils import set_logging_level, set_memory, tf_custom_callbacks, tf_extra_configs
 from services.creation_services import build_model, load_datasets, save_class_names
-
-set_logging_level(logging.INFO)
 
 def main():
     """
@@ -16,6 +13,11 @@ def main():
     and saves the trained model and class labels.
     """
     try:
+        set_logging_level(logging.INFO)
+
+        set_memory()
+        tf_extra_configs();
+
         parser = argparse.ArgumentParser(description='Train a deep learning model for image classification using TensorFlow.')
         parser.add_argument('--model_name', type=str, required=True, help='Name of the model (required)')
         parser.add_argument('--data_dir', type=str, required=False, default='data', help='Path to the dataset directory (default=data)')
@@ -40,10 +42,6 @@ def main():
         os.makedirs('labels', exist_ok=True)
         os.makedirs('models', exist_ok=True)
 
-        set_memory()
-
-        tf.keras.mixed_precision.set_global_policy('mixed_float16')
-
         datasets = load_datasets(data_dir, img_height, img_width, batch_size, validation_split)
         labels = datasets['labels']
         train_ds = datasets['train_ds']
@@ -64,12 +62,8 @@ def main():
                             min_dropout_rate=3e-1,
                             max_dropout_rate=5e-1, 
                             learning_rate=1e-4)
-
-        callbacks = [
-            tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=1e-8, verbose=1, mode='auto', patience=15, restore_best_weights=True),
-            tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=5e-1, verbose=1, mode='auto', patience=3, min_delta=1e-6, cooldown=100, min_lr=0),
-            tf.keras.callbacks.ModelCheckpoint(filepath=f'models/{model_name}_checkpoint.keras', save_best_only=False)
-        ]
+        
+        callbacks = tf_custom_callbacks(model_name);
 
         model.fit(
             train_ds,
