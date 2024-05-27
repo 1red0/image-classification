@@ -1,8 +1,17 @@
 FROM python:3.12-slim
 
 COPY models /models
+
 COPY labels /labels
-COPY api.py /app.py
+
+COPY services /services
+
+COPY utils /utils
+
+COPY static /static
+
+COPY server.py /server.py
+
 COPY requirements.txt /requirements.txt
 
 RUN pip --no-cache-dir install --upgrade pip==24.0 && \
@@ -10,4 +19,4 @@ RUN pip --no-cache-dir install --upgrade pip==24.0 && \
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["python", "server.py"]
