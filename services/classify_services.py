@@ -1,10 +1,10 @@
-import argparse
+import json
 import logging
 import pathlib
-import json
-from typing import List, Tuple
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
+
+from typing import List, Tuple
 
 def load_class_names(labels_file: str) -> List[str]:
     """
@@ -26,8 +26,6 @@ def load_class_names(labels_file: str) -> List[str]:
         raise RuntimeError(f"Error decoding JSON from '{labels_file}'.")
     except Exception as e:
         raise RuntimeError(f"Error loading class names from '{labels_file}': {e}")
-
-
 
 def preprocess_image(image_path: str, img_height: int, img_width: int) -> tf.Tensor:
     """
@@ -53,7 +51,7 @@ def preprocess_image(image_path: str, img_height: int, img_width: int) -> tf.Ten
         raise FileNotFoundError(f"Image file '{image_path}' not found.")
     except Exception as e:
         raise RuntimeError(f"Error preprocessing image '{image_path}': {e}")
-
+    
 def classify_image(model: tf.keras.Model, img_array: np.ndarray, class_names: List[str], top_k: int) -> Tuple[List[str], List[float]]:
     """
     Classify the class of the input image using the trained model.
@@ -77,52 +75,53 @@ def classify_image(model: tf.keras.Model, img_array: np.ndarray, class_names: Li
         top_confidences = [100 * scores[idx] for idx in top_indices]
 
         return top_classes, top_confidences
-    except Exception as e:
-        raise RuntimeError(f"Error classifying image: {e}")
-
-def main():
+    except (tf.errors.InvalidArgumentError, tf.errors.ResourceExhaustedError) as e:
+        logging.error(f"Failed to classify image: {e}")
+        raise RuntimeError(f"Failed to classify image: {e}")
+    
+def load_model(model_name: str, path: str) -> tf.keras.Model:
     """
-    Orchestrates the process of loading a machine learning model, preprocessing an image, classifying the image using the model,
-    and displaying the classification results.
+    Load a TensorFlow model from a specified directory and model name.
+
+    Args:
+        model_name (str): The name of the model to load.
+        path (str): The directory where the model files are stored.
+
+    Returns:
+        tf.keras.Model: The loaded TensorFlow model object.
+
+    Raises:
+        FileNotFoundError: If the model file is not found.
+        RuntimeError: If any other error occurs during the loading process.
     """
     try:
-        parser = argparse.ArgumentParser(description='Image classification script')
-        parser.add_argument('--model_name', type=str, required=True, help='Name of the model (required)')
-        parser.add_argument('--image_path', type=str, required=True, help='Path to the image (required)')
-        parser.add_argument('--top_k', type=int, default=3, help='Number of classes to display (default=3)')
-        parser.add_argument('--img_height', type=int, default=256, help='Processing height of the image (default=256)')
-        parser.add_argument('--img_width', type=int, default=256, help='Processing width of the image (default=256)')
-
-        args = parser.parse_args()
-
-        model_name = args.model_name
-        image_path = args.image_path
-        top_k = args.top_k
-        img_height = args.img_height
-        img_width = args.img_width
-
-        labels_file = pathlib.Path('labels') / f"{model_name}.txt"
-
-        try:
-            model = tf.keras.models.load_model(pathlib.Path('models') / f"{model_name}.keras")
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Model file 'models/{model_name}.keras' not found.")
-        except Exception as e:
-            raise RuntimeError(f"Error loading model 'models/{model_name}.keras': {e}")
-
-        class_names = load_class_names(labels_file)
-        img_array = preprocess_image(image_path, img_height, img_width)
-        top_classes, top_confidences = classify_image(model, img_array, class_names, top_k)
-
-        print("Classifications:")
-        for label, confidence in zip(top_classes, top_confidences):
-            print(f"- {label}: {confidence:.2f}% confidence")
-    except KeyboardInterrupt:
-        logging.info("Classification interrupted. Exiting gracefully.")
-    except (FileNotFoundError, ValueError, RuntimeError) as e:
-        logging.error(f"Error occurred: {e}")
+        model = tf.keras.models.load_model(pathlib.Path(path) / f"{model_name}.keras")
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Model file '{path}/{model_name}.keras' not found.")
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
+        raise RuntimeError(f"Error loading model '{path}/{model_name}.keras': {e}")
+    
+    return model
 
-if __name__ == "__main__":
-    main()
+def load_labels(model_name: str, path: str) -> pathlib.Path:
+    """
+    Constructs the path to a JSON file containing labels associated with a model.
+
+    Args:
+        model_name (str): The name of the model.
+        path (str): The directory path where the model's associated files are stored.
+
+    Returns:
+        pathlib.Path: A Path object representing the full path to the labels file.
+        
+    Raises:
+        FileNotFoundError: If the labels file is not found.
+        RuntimeError: If there is an error loading the labels file.
+    """
+    try:
+        labels_file = pathlib.Path(path) / f"{model_name}.json"
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Labels file '{path}/{model_name}.json' not found.")
+    except Exception as e:
+        raise RuntimeError(f"Error loading labels '{path}/{model_name}.json': {e}")    
+    return labels_file

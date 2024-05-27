@@ -11,7 +11,7 @@ Install dependencies `pip --no-cache-dir install -r requirements.txt`
 #### create_model.py
 
 ```text
-usage: create_model.py [-h] --model_name MODEL_NAME [--data_dir DATA_DIR] [--epochs EPOCHS]
+usage: create_model_cli.py [-h] --model_name MODEL_NAME [--data_dir DATA_DIR] [--epochs EPOCHS]
                        [--batch_size BATCH_SIZE] [--img_height IMG_HEIGHT] [--img_width IMG_WIDTH]
                        [--validation_split VALIDATION_SPLIT]
 
@@ -36,7 +36,7 @@ options:
 #### classify.py
 
 ```text
-usage: classify.py [-h] --model_name MODEL_NAME --image_path IMAGE_PATH [--top_k TOP_K] [--img_height IMG_HEIGHT]
+usage: classify_cli.py [-h] --model_name MODEL_NAME --image_path IMAGE_PATH [--top_k TOP_K] [--img_height IMG_HEIGHT]
                    [--img_width IMG_WIDTH]
 
 Image classification script
@@ -58,7 +58,7 @@ options:
 
 #### Starting the webapp with Python
 
-Run `python api.py`
+Run `python server.py`
 
 #### Starting the webapp with Docker
 
