@@ -21,10 +21,6 @@ def build_model(num_classes: int, img_height: int, img_width: int, regularizatio
     """
     model = tf.keras.models.Sequential([
         tf.keras.layers.Input(shape=(img_height, img_width, 3)),
-
-        tf.keras.layers.Conv2D(16, (3, 3), padding='same', activation='relu'),
-        tf.keras.layers.MaxPooling2D((2, 2)),
-        tf.keras.layers.BatchNormalization(),        
         
         tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation='relu'),
         tf.keras.layers.MaxPooling2D((2, 2)),
@@ -86,12 +82,7 @@ def load_datasets(data_dir: str, img_height: int, img_width: int, batch_size: in
         rescale=1./255,
         validation_split=validation_split,
         rotation_range=30,
-        shear_range=2e-1,
         horizontal_flip=True,
-        height_shift_range=2e-1,
-        width_shift_range=2e-1,
-        brightness_range=(8e-1, 12e-1),
-        zoom_range=2e-1,
         fill_mode='nearest'
     )
 
