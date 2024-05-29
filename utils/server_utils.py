@@ -101,7 +101,7 @@ def start_server(app: FastAPI):
         app (FastAPI): The FastAPI application to be served.
     """
     try:
-        uploads_path = (pathlib.Path(__file__).parent).joinpath('uploads')
+        uploads_path = (pathlib.Path(__file__).parents[1]).joinpath('uploads')
         uploads_path.mkdir(parents=True, exist_ok=True)
         uvicorn.run(app, host="0.0.0.0", port=5200)
     except FileNotFoundError:
