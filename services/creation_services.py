@@ -1,3 +1,4 @@
+import json
 import os
 import tensorflow as tf
 
@@ -119,7 +120,6 @@ def save_class_names(labels: list, filename: str) -> None:
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     try:
         with open(filename, 'w', encoding='utf-8') as f:
-            for class_name in labels:
-                f.write(f"{class_name}\n")
+            json.dump(labels, f, ensure_ascii=False, indent=4)
     except IOError as e:
         raise IOError(f"Error saving class names to {filename}: {e}")
