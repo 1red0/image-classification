@@ -1,8 +1,6 @@
 # Image-classification
 
-[![Docker Image](https://github.com/1red0/image-classification/actions/workflows/build-docker-image.yml/badge.svg)](https://github.com/1red0/image-classification/actions/workflows/build-docker-image.yml)  
-[![Unit testing Backend](https://github.com/1red0/image-classification/actions/workflows/unit-tests-backend.yml/badge.svg)](https://github.com/1red0/image-classification/actions/workflows/unit-tests-backend.yml)  
-[![Unit testing Frontend](https://github.com/1red0/image-classification/actions/workflows/unit-tests-frontend.yml/badge.svg)](https://github.com/1red0/image-classification/actions/workflows/unit-tests-frontend.yml)
+[![Docker Image](https://github.com/1red0/image-classification/actions/workflows/build-docker-image.yml/badge.svg)](https://github.com/1red0/image-classification/actions/workflows/build-docker-image.yml)     [![Unit testing Backend](https://github.com/1red0/image-classification/actions/workflows/unit-tests-backend.yml/badge.svg)](https://github.com/1red0/image-classification/actions/workflows/unit-tests-backend.yml)     [![Unit testing Frontend](https://github.com/1red0/image-classification/actions/workflows/unit-tests-frontend.yml/badge.svg)](https://github.com/1red0/image-classification/actions/workflows/unit-tests-frontend.yml)
 
 A image classification model written in Python using Tensorflow
 
