@@ -39,4 +39,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: html-test-report
-          path: reports/frontend/report_backend.html
+          path: reports/frontend/report_frontend.html
