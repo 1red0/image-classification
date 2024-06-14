@@ -176,3 +176,6 @@ uploads/**/*.png
 node_modules/
 
 package-lock.json
+
+
+reports/

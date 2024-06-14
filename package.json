@@ -1,24 +1,47 @@
 {
-  "name": "image-classification",
-  "version": "1.0.0",
-  "description": "A image classification model written in Python using Tensorflow",
-  "scripts": {
-    "test": "jest"
-  },
-  "author": "Rosu Andrei-Marius",
-  "license": "MIT",
-  "devDependencies": {
-    "jest": "29.7.0",
-    "jest-fetch-mock": "3.0.3",
-    "jest-environment-jsdom": "29.7.0",
-    "babel-jest": "29.7.0",
-    "@babel/core": "7.24.7",
-    "@babel/preset-env": "7.24.7"
-  },
-  "jest": {
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": [
-      "jest-fetch-mock"
-    ]
+    "name": "image-classification",
+    "version": "1.0.0",
+    "description": "A image classification model written in Python using Tensorflow",
+    "scripts": {
+      "test": "jest"
+    },
+    "author": "Rosu Andrei-Marius",
+    "license": "MIT",
+    "devDependencies": {
+      "jest": "29.7.0",
+      "jest-fetch-mock": "3.0.3",
+      "jest-environment-jsdom": "29.7.0",
+      "babel-jest": "29.7.0",
+      "@babel/core": "7.24.7",
+      "@babel/preset-env": "7.24.7",
+      "jest-junit": "13.0.0",
+      "jest-html-reporters": "3.1.7"
+    },
+    "jest": {
+      "testEnvironment": "jsdom",
+      "setupFilesAfterEnv": [
+        "jest-fetch-mock"
+      ],
+      "reporters": [
+        "default",
+        [
+          "jest-junit",
+          {
+            "outputDirectory": "./reports/frontend",
+            "outputName": "junit.xml"
+          }
+        ],
+        [
+          "jest-html-reporters",
+          {
+            "publicPath": "./reports/frontend",
+            "filename": "report.html",
+            "openReport": false,
+            "darkThemedarkTheme": true,
+            "inlineSource": true
+          }
+        ]
+      ]
+    }
   }
-}
+  
