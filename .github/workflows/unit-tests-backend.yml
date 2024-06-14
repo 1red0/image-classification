@@ -36,11 +36,11 @@ jobs:
       - name: Upload JUnit test report
         uses: actions/upload-artifact@v4
         with:
-          name: junit-test-report
+          name: junit-test-report-backend
           path: reports/backend/junit_backend.xml
 
       - name: Upload HTML test report
         uses: actions/upload-artifact@v4
         with:
-          name: html-test-report
+          name: html-test-report-backend
           path: reports/backend/report_backend.html
