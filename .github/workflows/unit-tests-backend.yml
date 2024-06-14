@@ -1,0 +1,46 @@
+name: Unit testing Backend
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  unit_testing:
+    name: Run Backend Pytest Tests
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip --no-cache-dir install --upgrade pip==24.0
+          pip --no-cache-dir install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          mkdir -p reports/backend
+          python -m pytest --junit-xml=reports/backend/junit_backend.xml --html=reports/backend/report_backend.html --self-contained-html
+
+      - name: Upload JUnit test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-test-report
+          path: reports/backend/junit_backend.xml
+
+      - name: Upload HTML test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-test-report
+          path: reports/backend/report_backend.html

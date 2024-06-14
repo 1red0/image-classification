@@ -1,4 +1,4 @@
-name: Unit testing image-classification
+name: Unit testing Frontend
 
 on:
   push:
@@ -33,10 +33,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: junit-test-report
-          path: reports/frontend/junit.xml
+          path: reports/frontend/junit_frontend.xml
 
       - name: Upload HTML test report
         uses: actions/upload-artifact@v4
         with:
           name: html-test-report
-          path: reports/frontend/report.html
+          path: reports/frontend/report_backend.html

@@ -28,14 +28,14 @@
           "jest-junit",
           {
             "outputDirectory": "./reports/frontend",
-            "outputName": "junit.xml"
+            "outputName": "junit_frontend.xml"
           }
         ],
         [
           "jest-html-reporters",
           {
             "publicPath": "./reports/frontend",
-            "filename": "report.html",
+            "filename": "report_frontend.html",
             "openReport": false,
             "darkThemedarkTheme": true,
             "inlineSource": true
