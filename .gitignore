@@ -172,3 +172,7 @@ uploads/**/*.jpeg
 uploads/**/*.png
 
 .vscode/
+
+node_modules/
+
+package-lock.json
