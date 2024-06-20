@@ -31,7 +31,7 @@ jobs:
       - name: Run tests
         run: |
           mkdir -p reports/backend
-          python -m pytest --junit-xml=reports/backend/junit_backend.xml --html=reports/backend/report_backend.html --self-contained-html
+          python -m pytest --junit-xml=reports/backend/junit_backend.xml --html=reports/backend/report_backend.html --self-contained-html -v
 
       - name: Upload JUnit test report
         uses: actions/upload-artifact@v4
