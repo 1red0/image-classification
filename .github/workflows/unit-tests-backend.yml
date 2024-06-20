@@ -1,10 +1,11 @@
 name: Unit testing Backend
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+  workflow_run:
+    workflows: ["Unit testing Frontend"]
+    branches: [main]
+    types:
+      - completed
 
 jobs:
   unit_testing:

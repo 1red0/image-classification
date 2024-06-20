@@ -2,9 +2,7 @@ name: Docker Image
 
 on:
   workflow_run:
-    workflows:
-      - Unit testing Backend
-      - Unit testing Frontend
+    workflows: ["Unit testing Backend"]
     branches: [main]
     types:
       - completed
