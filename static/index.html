@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Image Classifier</title>
     <link rel="stylesheet" href="/static/styles.css" />
+    <link type="image/x-icon" rel="icon" href="/static/favicon.ico" />
   </head>
   <body>
     <div class="container">
@@ -16,6 +17,9 @@
             <!-- Options will be dynamically populated -->
           </select>
           <button id="set-model-button" disabled>Set Model</button>
+          <button id="create-new-model-button" disabled>
+            Create New Model
+          </button>
         </div>
 
         <div class="form-group">
@@ -34,7 +38,7 @@
             name="file"
             accept="image/*"
           />
-          <button id="classify-button">Classify</button>
+          <button id="classify-button" disabled>Classify</button>
         </div>
       </div>
       <div class="results-container">

@@ -1,3 +1,3 @@
-# Models
+# Uploads
 
-Here are stored the images used in the API
+Here are stored the uploads

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Classifier</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link type="image/x-icon" rel="icon" href="/static/favicon.ico" />
+  </head>
+  <body>
+    <div class="creation-form">
+      <div class="creation-title">
+        <h1 class="title">Model Creation</h1>
+      </div>
+
+      <div class="form-group">
+        <label for="model-name">Model Name:</label>
+        <input
+          type="text"
+          placeholder="model"
+          id="model-name"
+          name="model-name"
+          class="styled-input"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="model-data">Upload Training Data (.zip archive):</label>
+        <input
+          type="file"
+          id="model-data"
+          name="model-data"
+          class="styled-input"
+          accept=".zip"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="model-epochs">Epochs:</label>
+        <input
+          type="number"
+          step="5"
+          min="10"
+          max="100"
+          value="15"
+          id="model-epochs"
+          name="model-epochs"
+          class="styled-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="model-batch_size">Batch Size:</label>
+        <input
+          type="number"
+          step="8"
+          min="8"
+          max="128"
+          value="32"
+          id="model-batch_size"
+          name="model-batch_size"
+          class="styled-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="model-img_height">Image Height:</label>
+        <input
+          type="number"
+          step="128"
+          min="128"
+          max="1080"
+          value="256"
+          id="model-img_height"
+          name="model-img_height"
+          class="styled-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="model-img_width">Image Width:</label>
+        <input
+          type="number"
+          step="128"
+          min="128"
+          max="1920"
+          value="256"
+          id="model-img_width"
+          name="model-img_width"
+          class="styled-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="model-validation_split">Validation Split:</label>
+        <input
+          type="number"
+          step="0.1"
+          min="0.1"
+          max="1"
+          value="0.2"
+          id="model-validation_split"
+          name="model-validation_split"
+          class="styled-input"
+        />
+      </div>
+
+      <button id="create-button">Create Model</button>
+      <button id="cancel-button">Cancel</button>
+
+      <div id="model-creation-status"></div>
+    </div>
+    <script type="module" src="/static/creation-script.js"></script>
+  </body>
+</html>

@@ -32,7 +32,13 @@ export async function fetch_labels(model) {
                 }
             }
         }
+        // Enable the "Classify" button
+        const classifyButton = document.getElementById('classify-button');
+        classifyButton.disabled = false;
     } catch (error) {
+        // Disable the "Classify" button
+        const classifyButton = document.getElementById('classify-button');
+        classifyButton.disabled = true;
         alert(`Error fetching number of labels: ${error}`);
     }
 }
@@ -98,7 +104,7 @@ export async function fetch_models() {
  * @returns {void}
  */
 export function display_models(models, modelSelect) {
-    if (models){
+    if (models) {
         models.forEach(model => {
             const option = document.createElement('option');
             option.value = model;
@@ -108,7 +114,7 @@ export function display_models(models, modelSelect) {
     } else {
         alert("No models")
     }
-    
+
 }
 
 /**
@@ -185,9 +191,9 @@ async function set_model() {
         const setModelButton = document.getElementById('set-model-button');
         setModelButton.disabled = true;
 
-        // Enable the classify button
-        const classifyButton = document.getElementById('classify-button');
-        classifyButton.disabled = false;
+        // Enable the "Create New Model" button
+        const createButton = document.getElementById('create-new-model-button');
+        createButton.disabled = false;
 
         await fetch_labels(modelName);
 
@@ -293,7 +299,10 @@ export async function classify_image() {
  */
 async function change_model_flow() {
     const classifyButton = document.getElementById('classify-button');
+    const createButton = document.getElementById('create-new-model-button');
+
     classifyButton.disabled = true;
+    createButton.disabled = true;
     await set_model();
 }
 
@@ -302,12 +311,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await fetch_models().then(() => {
         change_model_flow();
-    })    
+    })
 
     // Add event listener for set-model-button click
     document.getElementById('set-model-button').addEventListener('click', async () => {
         await clear_results();
         await change_model_flow();
+    });
+
+    // Add event listener for create-new-model-button click
+    document.getElementById('create-new-model-button').addEventListener('click', async () => {
+        window.location.href = 'create-model';
     });
 
     // Add event listener for classify-button click

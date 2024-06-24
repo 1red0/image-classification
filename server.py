@@ -1,10 +1,12 @@
 import pathlib
 import logging
+import subprocess
 import aiofiles
 import os
 import json
+import zipfile
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from werkzeug.utils import secure_filename
 from typing import List
 from fastapi import File, UploadFile, HTTPException
@@ -21,6 +23,21 @@ app = create_app("./static")
 
 class SetModelRequest(BaseModel):
     new_model_name: str
+
+class CreateModelRequest(BaseModel):
+    model_name: str
+    epochs: int
+    batch_size: int
+    img_height: int
+    img_width: int
+    validation_split: float  
+
+    @model_validator(mode='before')
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, str):
+            return cls(**json.loads(value))
+        return value    
 
 @app.get("/models", response_model=List[str])
 async def get_models():
@@ -80,7 +97,7 @@ async def classify(file: UploadFile = File(...), top_k: int = 3) -> JSONResponse
     """
     async with model_lock:
         try:
-            file_path = os.path.join('uploads', secure_filename(file.filename))
+            file_path = os.path.join('uploads', 'images', secure_filename(file.filename))
             
             if not file.content_type.startswith('image/'):
                 raise HTTPException(status_code=400, detail="Uploaded file is not an image.")
@@ -154,6 +171,76 @@ async def serve_index_html():
     except Exception as e:
         logging.error(f"Internal server error: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: '{e}'")
+
+@app.get("/create-model", response_class=HTMLResponse)
+async def serve_create_model_html():
+    """
+    Serves the create-model.html file from the static directory with HTTP caching, handling file not found and server errors.
+    
+    Returns:
+        HTMLResponse: HTML content of create-model.html or appropriate error response.
+    """
+    try:
+        async with aiofiles.open(pathlib.Path("static") / "create-model.html", mode="r") as file:
+            content = await file.read()
+        response = HTMLResponse(content=content)
+        response.headers["Cache-Control"] = "max-age=3600"
+        return response
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {e}")
+        raise HTTPException(status_code=404, detail="File not found")
+    except Exception as e:
+        logging.error(f"Internal server error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: '{e}'")
+
+@app.post("/create-model")
+async def create_model_endpoint(new_model: CreateModelRequest, file: UploadFile = File(...)):
+    try:
+        script_path = "./create_model_cli.py"  # Replace with actual path
+
+        file_path = os.path.join('uploads', 'datasets', secure_filename(file.filename))
+
+        # Read the file content once
+        content = await file.read()
+
+        if len(content) > 100 * 1024 * 1024:  # 100MB limit
+            raise HTTPException(status_code=400, detail="Uploaded training set is too large.")
+
+        try:
+            async with aiofiles.open(file_path, 'wb') as f:
+                await f.write(content)
+                logging.info("Archive uploaded successfully")                
+        except Exception as e:
+            logging.error(f"Error in writing the archive: {e}")
+        finally:
+            try:
+                with zipfile.ZipFile(f"uploads/datasets/{file.filename}", "r") as zip_ref:
+                    zip_ref.extractall('data/' + new_model.model_name + '_dataset')
+                    logging.info("Archive extracted successfully")
+            except Exception as e:
+                logging.error(f"Error in extracting the archive: {e}")
+
+        process = subprocess.Popen(
+            ["python", script_path,
+                f"--model_name {new_model.model_name}",
+                f"--data_dir data/{new_model.model_name}_dataset",
+                f"--epochs {new_model.epochs}",
+                f"--batch_size {new_model.batch_size}",
+                f"--img_height {new_model.img_height}",
+                f"--img_width {new_model.img_width}",
+                f"--validation_split {new_model.validation_split}"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        output, error = process.communicate(timeout=600)  # Set a timeout limit
+
+        return output, error
+
+    except Exception as e:
+        logging.error(f"Internal server error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: '{e}'")
+
 
 if __name__ == '__main__':
     start_server(app)

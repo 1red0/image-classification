@@ -201,3 +201,7 @@ button:focus {
 .styled-input:hover {
     border-color: #0056b3;
 }
+
+.creation-form {
+    padding: 25px;
+}
